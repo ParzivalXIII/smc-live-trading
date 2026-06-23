@@ -150,7 +150,7 @@ class smc:
             
             # Step 2: Candidate discovery — compare current bar against previous bars
             # (Buffer contains only bars BEFORE the current one)
-            if len(self._high_buffer) >= self._swing_length:
+            if self._atr_ready and len(self._high_buffer) >= self._swing_length:
                 max_high = max(self._high_buffer)
                 min_low = min(self._low_buffer)
                 
@@ -185,6 +185,7 @@ class smc:
                         # Confirm swing high — price retraced enough below candidate
                         result["HighLow"] = 1.0
                         result["Level"] = float(self._candidate_level)
+                        result["PivotIndex"] = float(self._candidate_index)
                         self._trend = -1  # Flip to DOWNTREND (seek low)
                         # Reset candidate
                         self._candidate_direction = 0
@@ -198,6 +199,7 @@ class smc:
                         # Confirm swing low — price retraced enough above candidate
                         result["HighLow"] = -1.0
                         result["Level"] = float(self._candidate_level)
+                        result["PivotIndex"] = float(self._candidate_index)
                         self._trend = 1  # Flip to UPTREND (seek high)
                         # Reset candidate
                         self._candidate_direction = 0
@@ -339,10 +341,10 @@ class smc:
             raise ValueError(
                 f"atr_period must be >= 1, got {atr_period}"
             )
-        if swing_length + confirmation_bars > len(ohlc):
+        if max(swing_length, atr_period) + confirmation_bars > len(ohlc):
             raise ValueError(
-                f"swing_length ({swing_length}) + confirmation_bars ({confirmation_bars}) "
-                f"= {swing_length + confirmation_bars} > len(ohlc) ({len(ohlc)}): "
+                f"max(swing_length, atr_period) ({max(swing_length, atr_period)}) + confirmation_bars ({confirmation_bars}) "
+                f"= {max(swing_length, atr_period) + confirmation_bars} > len(ohlc) ({len(ohlc)}): "
                 f"insufficient data to produce swings"
             )
         if atr_period > len(ohlc):

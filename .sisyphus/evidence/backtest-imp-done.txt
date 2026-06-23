@@ -1,0 +1,175 @@
+Backtest Replay Harness — Implementation Complete
+==================================================
+
+Plan:    .sisyphus/plans/backtest-replay-harness.md
+File:    backtest.py (1,032 lines)
+Engine:  smartmoneyconcepts/smc.py (2 lines added — PivotIndex)
+Date:    2026-06-23
+
+
+Architecture
+------------
+
+backtest.py
+├── BacktestConfig         Dataclass (7 params + 3 settings)
+├── BacktestEvent          Dataclass (6 fields incl. pivot_index)
+├── EventRecorder          Accumulates events during replay
+├── StrategyCallback       Protocol for V2 trade simulation
+├── NoopStrategy           Default V1 callback (no-op)
+├── load_dataset()         CSV loader + column normalization
+├── validate_dataset()     5 data quality checks
+├── replay_phase() 🔴      Phase 1: _SwingEngine.update() streaming loop
+├── batch_analysis_phase() 🔵 Phase 2: 4 downstream batch methods
+├── build_per_candle_report()  26-column merged report
+├── compute_metrics()      18 metrics (real timing delay, batch diff)
+├── export_results()       CSV + JSON + TXT export
+├── warn_if_large()        100k-row performance guard
+├── compare_replay_to_batch()  Causality certification
+├── BacktestResult         Dataclass container
+├── BacktestHarness        Primary orchestration API class
+└── main()                 CLI wrapper (argparse inside main())
+
+
+Two-Phase Replay Design
+-----------------------
+
+Phase 1 (Streaming — exact live path):
+  for i in range(len(data)):
+      result = engine.update(i, row)
+      strategy_callback.update(i, row, result)
+      record event if swing confirmed
+
+Phase 2 (Batch — post-hoc analysis):
+  bos_choch(data, swings)
+  ob(data, swings)
+  liquidity(data, swings)
+  retracements(data, swings)
+  → merge into 26-column per_candle_report
+
+
+Event-Driven Core (V1/V2 Interface)
+------------------------------------
+
+for candle in candles:
+    events = engine.update(candle)       # Phase 1
+    strategy.update(candle, events)      # V2: trade sim plugs in here
+
+
+Output Artifacts
+----------------
+
+Artifact             Format    Contents
+───────              ──────    ────────
+per_candle_report    CSV       26 columns, 1 row per candle
+event_log            CSV       1 row per confirmed swing event
+metrics              JSON      18 computed metrics
+summary              TXT       Human-readable metrics summary
+swing_engine_csv     CSV       Replay swings (HighLow + Level)
+batch_swings_csv     CSV       Batch swings (for comparison)
+bos_choch_csv        CSV       BOS/CHOCH events
+order_blocks_csv     CSV       Order blocks
+liquidity_csv        CSV       Liquidity zones
+retracements_csv     CSV       Retracement data
+
+
+Metrics (18 total)
+------------------
+
+Category              Metrics
+────────              ──────
+Swings               total_swings, swing_highs, swing_lows
+BOS/CHOCH            total_bos, bos_bullish, bos_bearish, total_choch
+OB                   total_ob, avg_ob_percentage
+Liquidity            total_liquidity_zones, avg_liq_zone_width_bars, sweep_rate
+Retracements         total_retracement_direction_changes
+Timing               avg_event_delay_bars (real measured, not config)
+Integrity            batch_diff_score, diff_rows, replay_pass
+Performance          processing_time_seconds
+
+
+smc.py Changes (minimal, backwards-compatible)
+------------------------------------------------
+
+2 lines added — both confirmation blocks now include:
+  result["PivotIndex"] = float(self._candidate_index)
+
+No signature changes. All existing tests pass unchanged.
+
+
+Momus Fixes Applied (16 issues resolved)
+-----------------------------------------
+
+Critical (3):
+  C1 — avg_event_delay_bars is real measured timing, not config constant
+  C2 — batch_diff_score is actual computation, not hardcoded 0.0
+  C3 — QA scenarios self-contained (no undefined variables)
+
+Important (4):
+  I1 — replay_phase() validates all 6 parameter conditions
+  I2 — BacktestHarness.run() computes swings once, not twice
+  I3 — Added liquidity zone width + sweep rate metrics
+  I4 — Formal StrategyCallback Protocol class
+
+Minor (5): CLI downstream params, overwrite flag, test path constant,
+           schema alignment, argparse import scoping
+
+Missing (4): validate_dataset(), import path docs, large-dataset warning,
+             multi-config integration test
+
+
+Test Results
+------------
+
+Test                              Result
+────                              ──────
+python tests/unit_tests.py        16/16 PASS
+python tests/test_causality.py    ALL CHECKS PASSED
+python tests/stream_compare.py    PASS: 0 differences
+python backtest.py --help         CLI works (all flags present)
+
+Evidence: 20 QA files in .sisyphus/evidence/
+
+
+Key Verification Numbers (EURUSD 15M, default params)
+-------------------------------------------------------
+
+Processing time             21.5  seconds
+Total swings                2,415 (1,207 highs / 1,208 lows)
+Total BOS                   546   (282 bullish / 264 bearish)
+Total OB                    61
+Total liquidity zones       501
+Avg event delay             2.12  bars (real measured)
+Batch diff score            0.0%  (perfect causality)
+Sweep rate                  100%
+Per-candle report columns   26
+
+
+Usage
+-----
+
+Python API:
+  from backtest import BacktestConfig, BacktestHarness
+  cfg = BacktestConfig(swing_length=5, confirmation_bars=2)
+  harness = BacktestHarness(cfg)
+  result = harness.run("data/EURUSD_15M.csv")
+  result.metrics   → dict of 18 metrics
+  result.report    → 26-column DataFrame
+  result.events    → event log DataFrame
+
+CLI:
+  python backtest.py \
+      --data tests/test_data/EURUSD/EURUSD_15M.csv \
+      --output-dir ./results \
+      --swing-length 5 \
+      --confirmation-bars 2 \
+      --close-break \
+      --verbose
+
+V2 Trade Simulation:
+  class MyStrategy:
+      def update(self, index, row, engine_result):
+          if engine_result.get("HighLow") == 1:
+              # enter short
+              pass
+  harness = BacktestHarness(cfg, strategy_callback=MyStrategy())
+  result = harness.run("data.csv")

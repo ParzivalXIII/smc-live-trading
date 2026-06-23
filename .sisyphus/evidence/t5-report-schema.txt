@@ -1,0 +1,4 @@
+[1;33mThank you for using SmartMoneyConcepts! ⭐ Please show your support by giving a star on the GitHub repository: [4;34mhttps://github.com/joshyattridge/smart-money-concepts[0m
+Report shape: (24424, 26)
+Columns (26): ['Timestamp', 'Open', 'High', 'Low', 'Close', 'Volume', 'SwingHighLow', 'SwingLevel', 'SwingPivotIndex', 'BOS', 'CHOCH', 'BOSLevel', 'BrokenIndex', 'OB', 'OBTop', 'OBBottom', 'OBVolume', 'OBMitigatedIndex', 'OBPct', 'Liquidity', 'LiqLevel', 'LiqEnd', 'LiqSwept', 'RetraceDirection', 'CurrentRetracement%', 'DeepestRetracement%']
+Columns OK
