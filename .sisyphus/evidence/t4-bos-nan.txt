@@ -1,0 +1,3 @@
+T4 QA: BOS on non-BOS bar does nothing
+Status: PASS (same test as t4-bos-flip-unit, row0 test)
+Timestamp: 2026-06-23

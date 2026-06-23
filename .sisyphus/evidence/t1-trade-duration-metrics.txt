@@ -1,0 +1,9 @@
+--- T1: Add trade duration metrics ---
+Edited backtest.py compute_trade_metrics():
+- Added avg_trade_bars and median_trade_bars computation after max_drawdown
+- Added both to returned dict
+- Added NaN defaults in empty-trades return
+
+QA verification:
+- With trades: avg_trade_bars=8.33, median_trade_bars=10.0 (correct for durations [5, 10, 10])
+- Without trades: both are NaN

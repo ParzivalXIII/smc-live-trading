@@ -32,6 +32,8 @@ import numpy as np
 import pandas as pd
 
 from smartmoneyconcepts.smc import smc
+from smartmoneyconcepts.structures import StructureEngine, SwingConfirmed
+from trade_simulator import TradeSimulator
 
 # =============================================================================
 # T1: BacktestConfig — Configuration dataclass
@@ -74,6 +76,13 @@ class BacktestConfig:
 
     # Export settings
     overwrite: bool = True
+
+    # Streaming StructureEngine parameters
+    bos_confirmation_window: int = 10  # Bars before provisional BOS/CHOCH is cancelled
+
+    # V2 placeholders (unused in V1, default 0 = no effect)
+    slippage_bps: float = 0.0      # Slippage in basis points
+    fee_bps: float = 0.0           # Commission/fee in basis points
 
 
 # =============================================================================
@@ -277,10 +286,14 @@ class EventRecorder:
 
 
 class StrategyCallback(Protocol):
-    """Protocol for V2 trade simulation callbacks.
+    """Protocol for trade simulation callbacks.
 
-    Implementations receive per-bar engine output and can execute trades.
-    V1 uses NoopStrategy (no-op). V2 plugs in a real strategy.
+    Implementations receive per-bar data and a TradeSimulator to execute trades.
+    Called once per candle during Phase 3 (after batch analysis completes).
+    The `row` parameter contains the full per-candle report (all indicators).
+
+    Note: The `simulator` parameter is optional to support the Phase 1 call
+    from `replay_phase()`, which passes only 3 args (candle_index, row, engine_result).
     """
 
     def update(
@@ -288,26 +301,37 @@ class StrategyCallback(Protocol):
         candle_index: int,
         row: pd.Series,
         engine_result: dict[str, float],
+        simulator: TradeSimulator | None = None,
+        structure_events: list | None = None,
     ) -> None:
-        """Called every bar with current candle and engine output.
+        """Called every bar with current candle, all indicators, and the simulator.
 
         Args:
             candle_index: Position in the dataset (0-based).
-            row: Current candle OHLCV data (lowercase columns).
+            row: Full per-candle report row (OHLCV + all indicators including
+                BOS, OB, etc.).
             engine_result: Output from _SwingEngine.update() — contains
                 "HighLow", "Level", and "PivotIndex" keys.
+            simulator: TradeSimulator instance for entering/closing trades.
+                Optional — None when called from Phase 1 (engine replay
+                without trade sim).
+            structure_events: Optional list of StructureEvent objects for this
+                bar. Contains confirmed/cancelled status changes. Streaming
+                strategies should use this instead of row["BOS"].
         """
         ...
 
 
 class NoopStrategy:
-    """No-op strategy for V1. Does nothing — placeholder for V2."""
+    """No-op strategy. Accepts the new parameters but ignores them."""
 
     def update(
         self,
         candle_index: int,
         row: pd.Series,
         engine_result: dict[str, float],
+        simulator = None,
+        structure_events: list | None = None,
     ) -> None:
         pass
 
@@ -321,7 +345,7 @@ def replay_phase(
     data: pd.DataFrame,
     config: BacktestConfig,
     strategy_callback: Optional[StrategyCallback] = None,
-) -> tuple[pd.DataFrame, List[BacktestEvent]]:
+) -> tuple[pd.DataFrame, List[BacktestEvent], list, object]:
     """Phase 1: Stream all candles through _SwingEngine.update().
 
     This is the EXACT code path that would be used in live trading.
@@ -336,6 +360,10 @@ def replay_phase(
         swings_df: DataFrame with columns HighLow, Level, PivotIndex
                    (one row per candle).
         events: List of BacktestEvent objects for confirmed swings.
+        structure_events: List of all StructureEvent objects (provisional,
+                         confirmed, cancelled).
+        structure_engine: StructureEngine instance (for optional post-hoc
+                         inspection).
 
     Raises:
         ValueError: If any parameter is invalid.
@@ -369,12 +397,16 @@ def replay_phase(
             f"atr_period ({config.atr_period}) > len(data) ({len(data)})"
         )
 
-    # ---- Instantiate engine ----
+    # ---- Instantiate engines ----
     engine = smc._SwingEngine(
         config.swing_length,
         config.confirmation_bars,
         config.atr_multiplier,
         config.atr_period,
+    )
+
+    structure_engine = StructureEngine(
+        confirmation_window=config.bos_confirmation_window,
     )
 
     recorder = EventRecorder()
@@ -386,8 +418,13 @@ def replay_phase(
     levels = np.full(n, np.nan, dtype=np.float64)
     pivot_indices = np.full(n, np.nan, dtype=np.float64)
 
+    # Accumulate all structure events
+    all_structure_events: list = []
+
     for i in range(n):
         row = data.iloc[i]
+        high = float(row["high"])
+        low = float(row["low"])
 
         # Step 1: Engine update — THIS is the live code path
         result = engine.update(i, row)
@@ -400,11 +437,29 @@ def replay_phase(
         levels[i] = level
         pivot_indices[i] = pivot_index
 
-        # Step 3: Record event if swing was confirmed
+        # Step 3: Record event if swing was confirmed → feed to StructureEngine
+        new_structure_events: list = []
         if not np.isnan(highlow):
             recorder.record_swing(i, int(pivot_index), data.index[i], highlow, level)
+            swing = SwingConfirmed(
+                index=i,
+                direction=int(highlow),
+                level=float(level),
+                timestamp=data.index[i],
+                pivot_index=int(pivot_index),
+            )
+            new_structure_events = structure_engine.update(swing)
+            all_structure_events.extend(new_structure_events)
 
-        # Step 4: Strategy callback (V2 hook — no-op in V1)
+        # Step 4: Check confirmations EVERY bar (not just on swings)
+        status_changes = structure_engine.check_confirmations(i, high, low)
+        # Dedup: if a provisional event was just emitted (step 3) AND confirmed
+        # on the same bar, don't add it twice.
+        all_structure_events.extend(
+            e for e in status_changes if e not in new_structure_events
+        )
+
+        # Step 5: Strategy callback (V2 hook — no-op in V1)
         callback.update(i, row, result)
 
     swings_df = pd.concat(
@@ -416,7 +471,7 @@ def replay_phase(
         axis=1,
     )
 
-    return swings_df, recorder.events
+    return swings_df, recorder.events, all_structure_events, structure_engine
 
 
 # =============================================================================
@@ -675,6 +730,96 @@ def compute_metrics(
 
 
 # =============================================================================
+# T2: Trade metrics computation
+# =============================================================================
+
+
+def compute_trade_metrics(
+    trades_df: pd.DataFrame,
+    equity_curve: pd.Series,
+) -> dict[str, float | int]:
+    """Compute V1 trade simulation metrics from closed trades.
+
+    Args:
+        trades_df: DataFrame from TradeSimulator.to_dataframe().
+            Must have columns: side, entry_index, entry_time, entry_price,
+            exit_index, exit_time, exit_price, pnl.
+        equity_curve: Series from TradeSimulator.equity_curve().
+            Cumulative PnL indexed by exit_index.
+
+    Returns:
+        dict with keys:
+        - total_trades: int
+        - wins: int
+        - losses: int
+        - win_rate: float (0.0 to 1.0, NaN if total_trades==0)
+        - gross_profit: float
+        - gross_loss: float (positive number)
+        - profit_factor: float (gross_profit / gross_loss, 1e9 sentinel if gross_loss==0)
+        - net_pnl: float
+        - max_drawdown: float (positive number, NaN if no trades)
+        - avg_trade_bars: float (mean trade duration in bars)
+        - median_trade_bars: float (median trade duration in bars)
+    """
+    if trades_df.empty:
+        return {
+            "total_trades": 0,
+            "wins": 0,
+            "losses": 0,
+            "win_rate": float("nan"),
+            "gross_profit": 0.0,
+            "gross_loss": 0.0,
+            "profit_factor": float("nan"),
+            "net_pnl": 0.0,
+            "max_drawdown": float("nan"),
+        "avg_trade_bars": float("nan"),
+        "median_trade_bars": float("nan"),
+        }
+
+    pnls = trades_df["pnl"].values
+    total = len(pnls)
+    wins = int((pnls > 0).sum())
+    losses = int((pnls <= 0).sum())
+    win_rate = round(wins / total, 4) if total > 0 else float("nan")
+    gross_profit = float(pnls[pnls > 0].sum()) if wins > 0 else 0.0
+    gross_loss = float(abs(pnls[pnls <= 0].sum())) if losses > 0 else 0.0
+    profit_factor = (
+        round(gross_profit / gross_loss, 4)
+        if gross_loss > 0
+        else 1e9 if gross_profit > 0
+        else float("nan")
+    )
+    net_pnl = float(pnls.sum())
+
+    # Max drawdown from equity curve
+    if len(equity_curve) > 0:
+        running_max = np.maximum.accumulate(equity_curve.values)
+        drawdown = equity_curve.values - running_max
+        max_drawdown = round(abs(float(drawdown.min())), 4)
+    else:
+        max_drawdown = float("nan")
+
+    # Trade duration in bars
+    durations = trades_df["exit_index"].values - trades_df["entry_index"].values
+    avg_trade_bars = round(float(np.mean(durations)), 2)
+    median_trade_bars = round(float(np.median(durations)), 2)
+
+    return {
+        "total_trades": total,
+        "wins": wins,
+        "losses": losses,
+        "win_rate": win_rate,
+        "gross_profit": round(gross_profit, 4),
+        "gross_loss": round(gross_loss, 4),
+        "profit_factor": profit_factor,
+        "net_pnl": round(net_pnl, 4),
+        "max_drawdown": max_drawdown,
+        "avg_trade_bars": avg_trade_bars,
+        "median_trade_bars": median_trade_bars,
+    }
+
+
+# =============================================================================
 # T7: Export functions
 # =============================================================================
 
@@ -840,6 +985,10 @@ class BacktestResult:
     swings_df: pd.DataFrame
     batch_results: dict[str, pd.DataFrame]
     metrics: dict
+    trades: Optional[pd.DataFrame] = None       # NEW: trade log
+    equity_curve: Optional[pd.Series] = None    # NEW: cumulative PnL
+    structure_events: list = field(default_factory=list)
+    structure_engine: object = None
 
 
 class BacktestHarness:
@@ -857,22 +1006,27 @@ class BacktestHarness:
     Run from project root or ensure PYTHONPATH includes project root.
     """
 
-    def __init__(self, config: Optional[BacktestConfig] = None) -> None:
+    def __init__(
+        self,
+        config: Optional[BacktestConfig] = None,
+        strategy_callback: Optional[StrategyCallback] = None,
+    ) -> None:
         self.config = config or BacktestConfig()
-        self._strategy_callback: StrategyCallback = NoopStrategy()
+        self._strategy_callback = strategy_callback or NoopStrategy()
 
     def set_strategy(self, strategy_callback: StrategyCallback) -> None:
         """Register a strategy callback for V2 trade simulation."""
         self._strategy_callback = strategy_callback
 
     def run(self, data_path: str) -> BacktestResult:
-        """Run the full two-phase backtest.
+        """Run the full three-phase backtest.
 
         1. Load + validate data
         2. Phase 1: Replay (streaming swing engine)
         3. Phase 2: Batch analysis (downstream methods)
         4. Build per-candle report
-        5. Compute metrics (using swings_df as batch reference)
+        5. Phase 3: Strategy simulation
+        6. Compute metrics (indicator + trade metrics)
 
         Args:
             data_path: Path to OHLC CSV file.
@@ -890,9 +1044,9 @@ class BacktestHarness:
         for w in warnings:
             print(f"\u26a0\ufe0f  Warning: {w}")
 
-        # Step 2: Phase 1 — Replay
-        swings_df, events = replay_phase(
-            data, self.config, self._strategy_callback
+        # Step 2: Phase 1 — Replay (always use NoopStrategy here; strategy runs in Phase 3)
+        swings_df, events, structure_events, structure_engine = replay_phase(
+            data, self.config
         )
 
         # Step 3: Phase 2 — Batch analysis
@@ -901,13 +1055,42 @@ class BacktestHarness:
         # Step 4: Build report
         report = build_per_candle_report(data, swings_df, batch_results)
 
-        # Step 5: Compute metrics
-        # Use swings_df as batch_swings — they ARE the same output
-        # by design (replay == batch proven by T10).
+        # Step 5: Phase 3 — Strategy simulation
+        # Build per-bar events lookup
+        structure_events_by_bar: dict[int, list] = {}
+        for evt in structure_events:
+            bar = (
+                evt.confirmed_at_index
+                if evt.status == "confirmed"
+                else evt.trigger_index
+            )
+            if bar not in structure_events_by_bar:
+                structure_events_by_bar[bar] = []
+            structure_events_by_bar[bar].append(evt)
+
+        simulator = TradeSimulator()
+        n = len(data)
+        for i in range(n):
+            engine_result: dict[str, float] = {
+                "HighLow": swings_df.iloc[i]["HighLow"],
+                "Level": swings_df.iloc[i]["Level"],
+                "PivotIndex": swings_df.iloc[i]["PivotIndex"],
+            }
+            bar_events = structure_events_by_bar.get(i, [])
+            self._strategy_callback.update(
+                i, report.iloc[i], engine_result, simulator, bar_events
+            )
+
+        trades_df = simulator.to_dataframe()
+        equity_curve_series = simulator.equity_curve()
+        trade_metrics = compute_trade_metrics(trades_df, equity_curve_series)
+
+        # Step 6: Compute existing metrics + merge trade metrics
         elapsed = time.time() - start
         metrics = compute_metrics(
             report, events, swings_df, swings_df, self.config, elapsed
         )
+        metrics.update(trade_metrics)
 
         return BacktestResult(
             config=self.config,
@@ -916,6 +1099,10 @@ class BacktestHarness:
             swings_df=swings_df,
             batch_results=batch_results,
             metrics=metrics,
+            trades=trades_df,
+            equity_curve=equity_curve_series,
+            structure_events=structure_events,
+            structure_engine=structure_engine,
         )
 
     def run_and_export(

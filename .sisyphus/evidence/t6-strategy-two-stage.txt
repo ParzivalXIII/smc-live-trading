@@ -1,0 +1,21 @@
+--- T6: Update StrategyCallback + BOSFlipStrategy for confirmed streaming events ---
+Edited backtest.py:
+  - Added structure_events: list | None = None to StrategyCallback protocol
+  - Added structure_events parameter to NoopStrategy
+  - Updated Phase 3 loop in BacktestHarness.run() to build per-bar events lookup
+  - Strategy callback now receives bar_events for each candle
+
+Edited strategies/bos_flip.py:
+  - V2 path: reacts to confirmed streaming BOS events only
+  - Guard: simulator is not None checks
+  - V1 fallback: batch row["BOS"] when structure_events is None
+  - Backward compatible signature
+
+QA verification (all passed):
+  - V2 confirmed → long
+  - V2 confirmed bearish → short
+  - V2 provisional → no action
+  - V2 cancelled → no action
+  - V1 fallback batch BOS → long
+  - V1 no BOS → no action
+  - Simulator None → no action

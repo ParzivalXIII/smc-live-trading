@@ -1,0 +1,11 @@
+--- T7: Unit tests for two-stage StructureEngine ---
+Created tests/test_structure_engine.py with 19 test cases:
+
+TestPatternDetection (4): bullish/bearish BOS, bullish/bearish CHOCH
+TestEdgeCases (4): non-pattern, <4 swings, dedup, BOS/CHOCH mutual exclusion
+TestStatusTransitions (7): confirmed bullish/bearish, cancelled, pending,
+  boundary confirm, boundary expiry, pending→confirmed
+TestLifecycle (3): mixed patterns, events copy safety, all properties
+
+Results: 19 passed in 1.17s
+Coverage: all 3 status transitions, all 4 pattern types, dedup, lifecycle

@@ -1,0 +1,3 @@
+T1 QA: Short trade with negative PnL
+Status: PASS
+Timestamp: 2026-06-23

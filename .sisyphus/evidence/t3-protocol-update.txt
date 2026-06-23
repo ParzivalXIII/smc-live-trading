@@ -1,0 +1,3 @@
+T3 QA: Protocol update verification (3-arg + 4-arg compatibility)
+Status: PASS
+Timestamp: 2026-06-23
