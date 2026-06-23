@@ -15,7 +15,8 @@ Import path: ``from smartmoneyconcepts.structures import StructureEngine``
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import uuid
+from dataclasses import dataclass, field
 from typing import Literal
 
 import pandas as pd
@@ -48,6 +49,7 @@ class StructureEvent:
     timestamp: pd.Timestamp  # Timestamp of the trigger swing
     status: Literal["provisional", "confirmed", "cancelled"] = "provisional"
     confirmed_at_index: int | None = None  # Bar index when confirmed
+    event_id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])  # Unique 8-char ID
 
 
 class StructureEngine:

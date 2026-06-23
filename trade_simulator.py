@@ -125,20 +125,32 @@ class TradeSimulator:
         self._closed_trades.append(trade)
         self._position = None
 
-    def to_dataframe(self) -> pd.DataFrame:
-        """Convert all closed trades to a DataFrame.
+    def to_dataframe(self, include_open: bool = False) -> pd.DataFrame:
+        """Convert trades to a DataFrame.
+
+        By default, only closed trades are included. If include_open is True,
+        the current open position (if any) is appended as a row with
+        exit_index=None, exit_time=None, exit_price=None, pnl=0.0.
+
+        Args:
+            include_open: Whether to include the open position.
 
         Returns:
             DataFrame with columns: side, entry_index, entry_time, entry_price,
             exit_index, exit_time, exit_price, pnl.
-            Empty DataFrame (0 rows) if no trades.
+            Empty DataFrame (0 rows) if no trades and no open position.
         """
-        if not self._closed_trades:
+        trades = [asdict(t) for t in self._closed_trades]
+        if include_open and self._position is not None:
+            open_dict = asdict(self._position)
+            open_dict["pnl"] = 0.0  # sentinel for unrealized PnL
+            trades.append(open_dict)
+        if not trades:
             return pd.DataFrame(columns=[
                 "side", "entry_index", "entry_time", "entry_price",
                 "exit_index", "exit_time", "exit_price", "pnl",
             ])
-        return pd.DataFrame([asdict(t) for t in self._closed_trades])
+        return pd.DataFrame(trades)
 
     def equity_curve(self) -> pd.Series:
         """Cumulative realized PnL after each trade close.

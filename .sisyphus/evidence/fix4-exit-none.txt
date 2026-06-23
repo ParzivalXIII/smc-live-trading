@@ -1,0 +1,5 @@
+avg_trade_bars:    91.5
+median_trade_bars: 68
+Open trades present: True
+Metrics computed without error: True
+PASS

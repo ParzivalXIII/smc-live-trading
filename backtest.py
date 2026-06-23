@@ -760,6 +760,9 @@ def compute_trade_metrics(
         - max_drawdown: float (positive number, NaN if no trades)
         - avg_trade_bars: float (mean trade duration in bars)
         - median_trade_bars: float (median trade duration in bars)
+        - avg_win: float (mean PnL of winning trades, 0.0 if no wins)
+        - avg_loss: float (mean absolute PnL of losing trades, 0.0 if no losses)
+        - expectancy: float (win_rate * avg_win - (1 - win_rate) * avg_loss)
     """
     if trades_df.empty:
         return {
@@ -799,10 +802,23 @@ def compute_trade_metrics(
     else:
         max_drawdown = float("nan")
 
-    # Trade duration in bars
-    durations = trades_df["exit_index"].values - trades_df["entry_index"].values
-    avg_trade_bars = round(float(np.mean(durations)), 2)
-    median_trade_bars = round(float(np.median(durations)), 2)
+    # Trade duration in bars (exclude open trades with no exit_index)
+    closed = trades_df["exit_index"].notna()
+    if closed.any():
+        closed_durations = trades_df.loc[closed, "exit_index"].values - trades_df.loc[closed, "entry_index"].values
+        avg_trade_bars = round(float(np.mean(closed_durations)), 2)
+        median_trade_bars = round(float(np.median(closed_durations)), 2)
+    else:
+        avg_trade_bars = float("nan")
+        median_trade_bars = float("nan")
+
+    # Avg win / avg loss / expectancy (Fix 2) — use closed trades only (Fix 4)
+    closed_pnls = trades_df.loc[closed, "pnl"].values if closed.any() else np.array([])
+    closed_wins = int((closed_pnls > 0).sum()) if len(closed_pnls) > 0 else 0
+    closed_losses = int((closed_pnls < 0).sum()) if len(closed_pnls) > 0 else 0
+    avg_win = float(np.mean(closed_pnls[closed_pnls > 0])) if closed_wins > 0 else 0.0
+    avg_loss = float(np.mean(abs(closed_pnls[closed_pnls < 0]))) if closed_losses > 0 else 0.0
+    expectancy = round(win_rate * avg_win - (1 - win_rate) * avg_loss, 6) if total > 0 else 0.0
 
     return {
         "total_trades": total,
@@ -816,6 +832,9 @@ def compute_trade_metrics(
         "max_drawdown": max_drawdown,
         "avg_trade_bars": avg_trade_bars,
         "median_trade_bars": median_trade_bars,
+        "avg_win": round(avg_win, 6),
+        "avg_loss": round(avg_loss, 6),
+        "expectancy": expectancy,
     }
 
 
@@ -1081,7 +1100,7 @@ class BacktestHarness:
                 i, report.iloc[i], engine_result, simulator, bar_events
             )
 
-        trades_df = simulator.to_dataframe()
+        trades_df = simulator.to_dataframe(include_open=True)
         equity_curve_series = simulator.equity_curve()
         trade_metrics = compute_trade_metrics(trades_df, equity_curve_series)
 
