@@ -1,0 +1,4 @@
+Streaming Pass Wrapper
+==================================================
+python tests/stream_compare.py tests/test_data/EURUSD/EURUSD_15M.csv
+Result: PASS - 0 differences

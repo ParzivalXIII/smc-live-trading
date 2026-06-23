@@ -1,0 +1,7 @@
+Shape: (24424, 6)
+Columns: ['OB', 'Top', 'Bottom', 'OBVolume', 'MitigatedIndex', 'Percentage']
+OB non-NaN: 61
+OBVolume range: [0.0, 0.0]
+Percentage range: [100.0, 100.0]
+All Percentage >= 0: True
+All Percentage <= 100: True

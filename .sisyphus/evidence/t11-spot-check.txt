@@ -1,0 +1,25 @@
+Swing Spot Check (first 20 non-NaN entries)
+==================================================
+  Index 9 (2022.10.10 02:15:00): HighLow=-1, Level=0.97272
+  Index 13 (2022.10.10 03:15:00): HighLow=1, Level=0.97372
+  Index 15 (2022.10.10 03:45:00): HighLow=-1, Level=0.97247
+  Index 22 (2022.10.10 05:30:00): HighLow=1, Level=0.97533
+  Index 31 (2022.10.10 07:45:00): HighLow=-1, Level=0.97324
+  Index 34 (2022.10.10 08:30:00): HighLow=1, Level=0.97436
+  Index 36 (2022.10.10 09:00:00): HighLow=-1, Level=0.97159
+  Index 55 (2022.10.10 13:45:00): HighLow=1, Level=0.97095
+  Index 61 (2022.10.10 15:15:00): HighLow=-1, Level=0.96871
+  Index 65 (2022.10.10 16:15:00): HighLow=1, Level=0.97219
+  Index 81 (2022.10.10 20:15:00): HighLow=-1, Level=0.96847
+  Index 87 (2022.10.10 21:45:00): HighLow=1, Level=0.97240
+  Index 97 (2022.10.11 00:15:00): HighLow=-1, Level=0.96934
+  Index 114 (2022.10.11 04:30:00): HighLow=1, Level=0.97228
+  Index 121 (2022.10.11 06:15:00): HighLow=-1, Level=0.96808
+  Index 123 (2022.10.11 06:45:00): HighLow=1, Level=0.96959
+  Index 128 (2022.10.11 08:00:00): HighLow=-1, Level=0.96706
+  Index 135 (2022.10.11 09:45:00): HighLow=1, Level=0.97030
+  Index 149 (2022.10.11 13:15:00): HighLow=-1, Level=0.96920
+  Index 155 (2022.10.11 14:45:00): HighLow=1, Level=0.97381
+
+Alternation: True
+Total swings: 2415

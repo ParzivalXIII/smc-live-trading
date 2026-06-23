@@ -1,0 +1,10 @@
+F2: Code Quality Review
+==================================================
+  [PASS] Encapsulation: all engine internals are private (underscore prefix)
+  [PASS] Type hints on __init__ parameters
+  [PASS] Type hints on update() parameters and return
+  [PASS] Docstrings on public methods
+  [PASS] No dead code or commented-out sections
+  [PASS] O(n) per-candle operations (no nested loops)
+
+Overall: ALL PASS

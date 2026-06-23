@@ -1,0 +1,7 @@
+R2: ATR Warmup Docstring — DONE
+========================================
+Added note to swing_highs_lows() docstring:
+  "Note: The first max(swing_length, atr_period) candles produce NaN output while
+   the internal ATR and price buffers fill. This is the cost of zero
+   look-ahead bias and is expected behavior."
+File: smartmoneyconcepts/smc.py, lines ~320-323

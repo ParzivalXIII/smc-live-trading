@@ -1,0 +1,6 @@
+Causality Validation
+==================================================
+Pass 1 - Batch mode: OK
+Pass 2 - Streaming mode: OK
+Pass 3 - Batch == Streaming: PASS
+Per-bar truncation check (30 sampled swings): PASS

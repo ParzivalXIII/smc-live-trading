@@ -1,0 +1,12 @@
+[project]
+name = "smc-live-trading"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "numba>=0.65.1",
+    "numpy>=2.4.6",
+    "pandas>=3.0.3",
+    "python-statemachine>=3.2.0",
+]

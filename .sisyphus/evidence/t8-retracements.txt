@@ -1,0 +1,9 @@
+Shape: (24424, 3)
+Columns: ['Direction', 'CurrentRetracement%', 'DeepestRetracement%']
+Direction non-zero: 24409
+CurrentRetracement% range: [-10500.0, 6788.9]
+DeepestRetracement% range: [0.0, 6788.9]
+All Current <= 100: False
+All Current >= 0: False
+All Deepest >= 0: True
+Deepest >= Current (tolerance 0.01): True

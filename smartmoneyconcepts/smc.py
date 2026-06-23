@@ -1,4 +1,5 @@
 from functools import wraps
+from collections import deque
 import pandas as pd
 import numpy as np
 from pandas import DataFrame, Series
@@ -39,9 +40,13 @@ def inputvalidator(input_="ohlc"):
 
 def apply(decorator):
     def decorate(cls):
-        for attr in cls.__dict__:
-            if callable(getattr(cls, attr)):
-                setattr(cls, attr, decorator(getattr(cls, attr)))
+        for attr_name in cls.__dict__:
+            attr_value = getattr(cls, attr_name)
+            # Skip inner classes (e.g., _SwingEngine)
+            if isinstance(attr_value, type):
+                continue
+            if callable(attr_value):
+                setattr(cls, attr_name, decorator(attr_value))
 
         return cls
 
@@ -50,7 +55,157 @@ def apply(decorator):
 
 @apply(inputvalidator(input_="ohlc"))
 class smc:
-    __version__ = "0.0.27"
+    __version__ = "0.1.0"
+
+    class _SwingEngine:
+        """Causal streaming state machine for swing high/low detection.
+        
+        Uses ATR-based hybrid confirmation (min bars + ATR retracement).
+        Candidates are mutable; confirmed swings are immutable.
+        Alternation enforced by state machine (swing high → seek low → swing low → seek high).
+        """
+        
+        def __init__(
+            self,
+            swing_length: int = 50,
+            confirmation_bars: int = 5,
+            atr_multiplier: float = 1.5,
+            atr_period: int = 14,
+        ):
+            self._swing_length = swing_length
+            self._confirmation_bars = confirmation_bars
+            self._atr_multiplier = atr_multiplier
+            self._atr_period = atr_period
+            
+            # State
+            self._trend = 0          # 0=NEUTRAL, 1=UPTREND, -1=DOWNTREND
+            
+            # Candidate state (mutable until confirmed)
+            self._candidate_direction = 0
+            self._candidate_level = 0.0
+            self._candidate_index = -1
+            self._candidate_bars_since = 0
+            
+            # ATR state
+            self._atr_ready = False
+            self._current_atr = 0.0
+            self._tr_buffer: list[float] = []
+            self._prev_close: float | None = None
+            
+            # Price buffers (previous swing_length bars, for candidate discovery)
+            self._high_buffer: deque[float] = deque(maxlen=swing_length)
+            self._low_buffer: deque[float] = deque(maxlen=swing_length)
+            
+            # (No confirmed-swings registry — output is returned per-candle)
+        
+        def _compute_atr(self, high: float, low: float, close: float) -> float:
+            """Compute running ATR using Wilder's smoothing.
+            
+            TR = max(high - low, abs(high - prev_close), abs(low - prev_close))
+            First ATR = mean of first atr_period TR values.
+            Subsequent ATR = (prev_ATR * (atr_period - 1) + TR) / atr_period
+            """
+            if self._prev_close is None:
+                self._prev_close = close
+                return 0.0
+            
+            tr = max(
+                high - low,
+                abs(high - self._prev_close),
+                abs(low - self._prev_close),
+            )
+            self._prev_close = close
+            
+            if not self._atr_ready:
+                self._tr_buffer.append(tr)
+                if len(self._tr_buffer) >= self._atr_period:
+                    self._current_atr = sum(self._tr_buffer) / self._atr_period
+                    self._atr_ready = True
+                return self._current_atr if self._atr_ready else 0.0
+            else:
+                self._current_atr = (
+                    self._current_atr * (self._atr_period - 1) + tr
+                ) / self._atr_period
+                return self._current_atr
+        
+        def update(self, index: int, row: pd.Series) -> dict[str, float]:
+            """Process a single candle and return swing detection result.
+            
+            Args:
+                index: Position of this candle in the full series.
+                row: Candle data with lowercase columns: open, high, low, close, volume.
+            
+            Returns:
+                dict with keys "HighLow" (1, -1, or NaN) and "Level" (float or NaN).
+            """
+            high = float(row["high"])
+            low = float(row["low"])
+            close = float(row["close"])
+            
+            # Step 1: Update ATR (causal, running)
+            self._compute_atr(high, low, close)
+            
+            # Initialize result (default: no swing confirmed)
+            result: dict[str, float] = {"HighLow": np.nan, "Level": np.nan}  # type: ignore[typeddict-item]
+            
+            # Step 2: Candidate discovery — compare current bar against previous bars
+            # (Buffer contains only bars BEFORE the current one)
+            if len(self._high_buffer) >= self._swing_length:
+                max_high = max(self._high_buffer)
+                min_low = min(self._low_buffer)
+                
+                if self._trend in (0, 1):  # NEUTRAL or UPTREND — seeking higher high
+                    if high > max_high:
+                        self._candidate_level = high
+                        self._candidate_index = index
+                        self._candidate_direction = 1
+                        self._candidate_bars_since = 0  # Reset on replacement
+                        self._trend = 1  # UPTREND
+                
+                if self._trend in (0, -1):  # NEUTRAL or DOWNTREND — seeking lower low
+                    if low < min_low:
+                        self._candidate_level = low
+                        self._candidate_index = index
+                        self._candidate_direction = -1
+                        self._candidate_bars_since = 0  # Reset on replacement
+                        self._trend = -1  # DOWNTREND
+            
+            # Step 3: Maintain price buffers (append current bar AFTER comparison)
+            self._high_buffer.append(high)
+            self._low_buffer.append(low)
+            
+            # Step 4: Confirmation (gated by _atr_ready)
+            if self._candidate_direction != 0 and self._atr_ready:
+                self._candidate_bars_since += 1
+                if self._candidate_bars_since >= self._confirmation_bars:
+                    if (
+                        self._candidate_direction == 1
+                        and low <= self._candidate_level - self._atr_multiplier * self._current_atr
+                    ):
+                        # Confirm swing high — price retraced enough below candidate
+                        result["HighLow"] = 1.0
+                        result["Level"] = float(self._candidate_level)
+                        self._trend = -1  # Flip to DOWNTREND (seek low)
+                        # Reset candidate
+                        self._candidate_direction = 0
+                        self._candidate_level = 0.0
+                        self._candidate_index = -1
+                        self._candidate_bars_since = 0
+                    elif (
+                        self._candidate_direction == -1
+                        and high >= self._candidate_level + self._atr_multiplier * self._current_atr
+                    ):
+                        # Confirm swing low — price retraced enough above candidate
+                        result["HighLow"] = -1.0
+                        result["Level"] = float(self._candidate_level)
+                        self._trend = 1  # Flip to UPTREND (seek high)
+                        # Reset candidate
+                        self._candidate_direction = 0
+                        self._candidate_level = 0.0
+                        self._candidate_index = -1
+                        self._candidate_bars_since = 0
+            
+            return result
 
     @classmethod
     def fvg(cls, ohlc: DataFrame, join_consecutive=False) -> Series:
@@ -134,86 +289,84 @@ class smc:
         )
 
     @classmethod
-    def swing_highs_lows(cls, ohlc: DataFrame, swing_length: int = 50) -> Series:
+    def swing_highs_lows(
+        cls,
+        ohlc: DataFrame,
+        swing_length: int = 50,
+        confirmation_bars: int = 5,
+        atr_multiplier: float = 1.5,
+        atr_period: int = 14,
+    ) -> DataFrame:
         """
-        Swing Highs and Lows
-        A swing high is when the current high is the highest high out of the swing_length amount of candles before and after.
-        A swing low is when the current low is the lowest low out of the swing_length amount of candles before and after.
+        Swing Highs and Lows (causal streaming engine)
+
+        A swing high is confirmed when price makes a new high (highest in `swing_length` bars),
+        then retraces downward by at least `atr_multiplier` × ATR after `confirmation_bars` bars.
+        A swing low is confirmed when price makes a new low (lowest in `swing_length` bars),
+        then retraces upward by at least `atr_multiplier` × ATR after `confirmation_bars` bars.
+
+        Swings are stamped on the confirmation bar (not the pivot bar),
+        ensuring zero look-ahead bias for live trading and backtesting.
+
+        Note: The first `max(swing_length, atr_period)` candles produce NaN output while
+        the internal ATR and price buffers fill. This is the cost of zero look-ahead bias
+        and is expected behavior.
 
         parameters:
-        swing_length: int - the amount of candles to look back and forward to determine the swing high or low
+        swing_length: int - the number of lookback bars for candidate discovery
+        confirmation_bars: int - minimum bars to wait before confirming a swing
+        atr_multiplier: float - multiplier applied to ATR for retracement threshold
+        atr_period: int - period for the internal ATR calculation
 
         returns:
-        HighLow = 1 if swing high, -1 if swing low
-        Level = the level of the swing high or low
+        HighLow = 1 if swing high, -1 if swing low, NaN otherwise
+        Level = the price level of the swing high or low
         """
+        # Parameter validation
+        if swing_length < 2:
+            raise ValueError(
+                f"swing_length must be >= 2, got {swing_length}"
+            )
+        if confirmation_bars < 1:
+            raise ValueError(
+                f"confirmation_bars must be >= 1, got {confirmation_bars}"
+            )
+        if atr_multiplier <= 0:
+            raise ValueError(
+                f"atr_multiplier must be > 0, got {atr_multiplier}"
+            )
+        if atr_period < 1:
+            raise ValueError(
+                f"atr_period must be >= 1, got {atr_period}"
+            )
+        if swing_length + confirmation_bars > len(ohlc):
+            raise ValueError(
+                f"swing_length ({swing_length}) + confirmation_bars ({confirmation_bars}) "
+                f"= {swing_length + confirmation_bars} > len(ohlc) ({len(ohlc)}): "
+                f"insufficient data to produce swings"
+            )
+        if atr_period > len(ohlc):
+            raise ValueError(
+                f"atr_period ({atr_period}) > len(ohlc) ({len(ohlc)}): "
+                f"ATR cannot be computed"
+            )
 
-        swing_length *= 2
-        # set the highs to 1 if the current high is the highest high in the last 5 candles and next 5 candles
-        swing_highs_lows = np.where(
-            ohlc["high"]
-            == ohlc["high"].shift(-(swing_length // 2)).rolling(swing_length).max(),
-            1,
-            np.where(
-                ohlc["low"]
-                == ohlc["low"].shift(-(swing_length // 2)).rolling(swing_length).min(),
-                -1,
-                np.nan,
-            ),
+        engine = cls._SwingEngine(
+            swing_length, confirmation_bars, atr_multiplier, atr_period
         )
+        highs_lows = np.full(len(ohlc), np.nan, dtype=np.float64)
+        levels = np.full(len(ohlc), np.nan, dtype=np.float64)
 
-        while True:
-            positions = np.where(~np.isnan(swing_highs_lows))[0]
-
-            if len(positions) < 2:
-                break
-
-            current = swing_highs_lows[positions[:-1]]
-            next = swing_highs_lows[positions[1:]]
-
-            highs = ohlc["high"].iloc[positions[:-1]].values
-            lows = ohlc["low"].iloc[positions[:-1]].values
-
-            next_highs = ohlc["high"].iloc[positions[1:]].values
-            next_lows = ohlc["low"].iloc[positions[1:]].values
-
-            index_to_remove = np.zeros(len(positions), dtype=bool)
-
-            consecutive_highs = (current == 1) & (next == 1)
-            index_to_remove[:-1] |= consecutive_highs & (highs < next_highs)
-            index_to_remove[1:] |= consecutive_highs & (highs >= next_highs)
-
-            consecutive_lows = (current == -1) & (next == -1)
-            index_to_remove[:-1] |= consecutive_lows & (lows > next_lows)
-            index_to_remove[1:] |= consecutive_lows & (lows <= next_lows)
-
-            if not index_to_remove.any():
-                break
-
-            swing_highs_lows[positions[index_to_remove]] = np.nan
-
-        positions = np.where(~np.isnan(swing_highs_lows))[0]
-
-        if len(positions) > 0:
-            if swing_highs_lows[positions[0]] == 1:
-                swing_highs_lows[0] = -1
-            if swing_highs_lows[positions[0]] == -1:
-                swing_highs_lows[0] = 1
-            if swing_highs_lows[positions[-1]] == -1:
-                swing_highs_lows[-1] = 1
-            if swing_highs_lows[positions[-1]] == 1:
-                swing_highs_lows[-1] = -1
-
-        level = np.where(
-            ~np.isnan(swing_highs_lows),
-            np.where(swing_highs_lows == 1, ohlc["high"], ohlc["low"]),
-            np.nan,
-        )
+        for i in range(len(ohlc)):
+            row = ohlc.iloc[i]
+            result = engine.update(i, row)
+            highs_lows[i] = result["HighLow"]
+            levels[i] = result["Level"]
 
         return pd.concat(
             [
-                pd.Series(swing_highs_lows, name="HighLow"),
-                pd.Series(level, name="Level"),
+                pd.Series(highs_lows, name="HighLow", dtype=np.float64),
+                pd.Series(levels, name="Level", dtype=np.float64),
             ],
             axis=1,
         )

@@ -1,0 +1,22 @@
+Golden CSV Regeneration Check
+==================================================
+
+swing_highs_lows_result_data.csv: EXISTS, size=73967 bytes
+  Shape: (24424, 2)
+  Non-NaN count: 2415
+
+bos_choch_result_data.csv: EXISTS, size=113669 bytes
+  Shape: (24424, 4)
+  Non-NaN count: 546
+
+ob_result_data.csv: EXISTS, size=148376 bytes
+  Shape: (24424, 6)
+  Non-NaN count: 61
+
+liquidity_result_data.csv: EXISTS, size=109962 bytes
+  Shape: (24424, 4)
+  Non-NaN count: 501
+
+retracements_result_data.csv: EXISTS, size=319638 bytes
+  Shape: (24424, 3)
+  Non-NaN count: 24424
