@@ -1,0 +1,174 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 77 items
+
+<Dir smc-live-trading>
+  <Dir tests>
+    <Module test_market_snapshot.py>
+      Tests for the MarketSnapshot system: MarketSnapshot, SnapshotBuilder,
+      ConfluenceResult, ConfluenceScorer, and MarketContext.
+      
+      Run with:
+          python -m pytest tests/test_market_snapshot.py -v --tb=short
+      <Class TestMarketSnapshot>
+        MarketSnapshot dataclass construction, fields, defaults.
+        <Function test_all_required_fields_present>
+          All required fields exist on the dataclass.
+        <Function test_all_optional_fields_present>
+          All optional fields exist on the dataclass.
+        <Function test_construct_with_all_required>
+          Construct with all required fields, optional default to None.
+        <Function test_optional_defaults_to_none>
+          All optional fields default to None.
+        <Function test_optional_can_be_set>
+          Optional fields can be explicitly set.
+        <Function test_field_types>
+          Verify types of optional fields.
+        <Function test_no_slots>
+          MarketSnapshot should NOT have __slots__ (pandas Timestamp).
+        <Function test_trend_direction_computation[50000.0-49000.0-above]>
+        <Function test_trend_direction_computation[49000.0-50000.0-below]>
+        <Function test_trend_direction_computation[50000.0-49950.0-above]>
+        <Function test_trend_direction_computation[50000.0-50050.0-at]>
+        <Function test_trend_direction_computation[50000.0-50000.0-at]>
+        <Function test_trend_direction_computation[50050.0-50000.0-at]>
+        <Function test_trend_direction_computation[49950.0-50000.0-at]>
+        <Function test_trend_direction_computation[100.0-0.0-at]>
+        <Function test_trend_direction_computation[nan-100.0-at]>
+      <Class TestSnapshotBuilder>
+        SnapshotBuilder.build() — TA field mapping, structure, liquidity, OB.
+        <Function test_build_basic>
+          Basic build with realistic data populates all TA fields.
+        <Function test_build_trend_direction_above>
+          close > ema21 → trend_direction == 'above'.
+        <Function test_build_trend_direction_below>
+          close < ema21 → trend_direction == 'below'.
+        <Function test_build_trend_direction_at>
+          close ≈ ema21 within 0.1% → trend_direction == 'at'.
+        <Function test_build_last_swing>
+          Last non-NaN SwingHighLow captured correctly.
+        <Function test_build_last_bos>
+          Last non-NaN BOS captured correctly.
+        <Function test_build_last_choch>
+          Last non-NaN CHOCH captured correctly.
+        <Function test_build_liquidity_above>
+          Nearest liquidity above close found correctly.
+        <Function test_build_liquidity_below>
+          Nearest liquidity below close found correctly.
+        <Function test_build_active_bullish_ob>
+          Active (unmitigated) bullish OB captured correctly.
+        <Function test_build_active_bearish_ob>
+          Active (unmitigated) bearish OB captured correctly.
+        <Function test_build_empty_report_all_none>
+          Empty/NaN smc_report → all optional fields None.
+        <Function test_build_na_ta_fields>
+          NaN values in ta_row propagate to snapshot floats.
+        <Function test_build_liquidity_swept_skipped>
+          Swept liquidity zones (LiqSwept > 0) are ignored.
+        <Function test_build_ob_mitigated_skipped>
+          Mitigated OBs (OBMitigatedIndex > 0) are ignored.
+      <Class TestConfluenceResult>
+        ConfluenceResult dataclass construction and attributes.
+        <Function test_construct_minimal>
+          Construct with all required fields.
+        <Function test_all_attributes>
+          All 4 attributes accessible.
+        <Function test_empty_reasons>
+          Empty reasons list allowed.
+        <Function test_slots>
+          ConfluenceResult should use slots for performance.
+      <Class TestConfluenceScorer>
+        ConfluenceScorer.score() — each condition isolated, combined, boundaries.
+        <Function test_scorer_returns_confluenceresult>
+          score() returns a valid ConfluenceResult.
+        <Function test_all_bullish_score_10>
+          All bullish conditions → score=10, bias=bullish.
+        <Function test_all_bearish_score_neg4>
+          All bearish conditions → score=-4, bias=bearish.
+        <Function test_isolated_close_above_ema21>
+          Only close>ema21 → score=2.
+        <Function test_isolated_ema21_slope_positive>
+          Only ema21_slope>0 → score=1.
+        <Function test_isolated_macd_above_signal>
+          Only macd>signal → score=1.
+        <Function test_isolated_rsi_above_55>
+          Only rsi14>55 → score=1.
+        <Function test_isolated_mfi_above_50>
+          Only mfi14>50 → score=1.
+        <Function test_isolated_bullish_bos>
+          Only last_bos_direction=1 → score=3.
+        <Function test_isolated_bearish_bos>
+          Only last_bos_direction=-1 → score=-3.
+        <Function test_isolated_liquidity_above>
+          Only nearest_liquidity_above exists → score=1.
+        <Function test_isolated_liquidity_below>
+          Only nearest_liquidity_below exists → score=-1.
+        <Function test_boundary_scores[-4-bearish]>
+          Score→bias mapping at exact boundaries.
+        <Function test_boundary_scores[-1-bearish]>
+          Score→bias mapping at exact boundaries.
+        <Function test_boundary_scores[0-bearish]>
+          Score→bias mapping at exact boundaries.
+        <Function test_boundary_scores[3-bearish]>
+          Score→bias mapping at exact boundaries.
+        <Function test_boundary_scores[4-neutral]>
+          Score→bias mapping at exact boundaries.
+        <Function test_boundary_scores[6-neutral]>
+          Score→bias mapping at exact boundaries.
+        <Function test_boundary_scores[7-bullish]>
+          Score→bias mapping at exact boundaries.
+        <Function test_boundary_scores[10-bullish]>
+          Score→bias mapping at exact boundaries.
+        <Function test_boundary_score_0>
+          Score=0 → bearish (0 is in [0,3] range).
+        <Function test_boundary_score_4>
+          Score=4 → neutral.
+        <Function test_boundary_score_7>
+          Score=7 → bullish.
+        <Function test_none_handling>
+          Snapshot with all optional fields None → no errors.
+        <Function test_reasons_populated>
+          All active conditions produce reasons.
+        <Function test_max_score_10>
+          Single snapshot max_score is always 10.
+        <Function test_both_liquidity_net_zero>
+          Both liquidity above and below → net +1-1=0.
+      <Class TestMarketContext>
+        MarketContext alignment detection and composite scoring.
+        <Function test_all_bullish_alignment>
+          All bullish → alignment='bullish'.
+        <Function test_all_bearish_alignment>
+          All bearish → alignment='bearish'.
+        <Function test_mixed_alignment>
+          Mixed biases → alignment='mixed'.
+        <Function test_partial_2_of_3>
+          2 of 3 same bias → alignment='bullish'.
+        <Function test_single_timeframe>
+          Single non-None → alignment=that bias.
+        <Function test_single_timeframe_bearish>
+          Single bearish non-None → alignment='bearish'.
+        <Function test_all_none>
+          All None → alignment='neutral'.
+        <Function test_composite_score_two_active>
+          2 active TFs → max_score=20.
+        <Function test_composite_score_three_active>
+          3 active TFs → max_score=30.
+        <Function test_composite_score_mixed>
+          Mixed alignment → composite bias='mixed'.
+        <Function test_composite_score_zero_active>
+          No active TFs → score=0, max_score=0, bias='neutral'.
+        <Function test_composite_score_reasons_present>
+          Composite score includes per-TF reasons.
+      <Class TestIntegration>
+        End-to-end tests with real data.
+        <Function test_real_ta_csv_integration>
+          Load real TA CSV and build a snapshot (if file exists).
+        <Function test_real_ta_csv_with_scoring>
+          Build snapshot from real data and score it.
+        <Function test_real_ta_csv_market_context>
+          Build multi-timeframe context from real data.
+
+========================= 77 tests collected in 0.08s ==========================

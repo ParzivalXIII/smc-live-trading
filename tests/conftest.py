@@ -95,3 +95,192 @@ def sinusoidal_df() -> pd.DataFrame:
 def tmp_csv_dir(tmp_path: Path) -> Path:
     """Temporary directory for CSV I/O tests."""
     return tmp_path
+
+
+# ---------------------------------------------------------------------------
+# Market Snapshot test fixtures
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="function")
+def sample_ta_row() -> pd.Series:
+    """Single TA row with known values for snapshot building tests.
+
+    close=50000, ema21=49000 (above), ema21_slope=0.01 (rising),
+    rsi14=60 (>55), mfi14=55 (>50), macd=100 (>macd_signal=90),
+    macd_hist=10, atr14=500, bb_width=0.05.
+    """
+    return pd.Series({
+        "timestamp": pd.Timestamp("2024-06-01 00:00:00"),
+        "close": 50000.0,
+        "ema21": 49000.0,
+        "ema21_slope": 0.01,
+        "rsi14": 60.0,
+        "mfi14": 55.0,
+        "macd": 100.0,
+        "macd_signal": 90.0,
+        "macd_hist": 10.0,
+        "atr14": 500.0,
+        "bb_width": 0.05,
+    })
+
+
+@pytest.fixture(scope="function")
+def sample_smc_report() -> pd.DataFrame:
+    """Minimal 26-column per_candle_report with known structure data.
+
+    Contains:
+      - A swing high at index 3 (SwingHighLow=1, SwingLevel=51000)
+      - A swing low at index 5 (SwingHighLow=-1, SwingLevel=49000)
+      - A bullish BOS at index 4 (BOS=1, BrokenIndex=6)
+      - A bearish CHOCH at index 3 (CHOCH=-1, BrokenIndex=7)
+      - Bullish liquidity at index 2 (Liquidity=1, LiqLevel=51000, LiqSwept=0)
+      - Bearish liquidity at index 5 (Liquidity=-1, LiqLevel=48000, LiqSwept=NaN)
+      - A bullish OB at index 3 (OB=1, OBBottom=49500, OBMitigatedIndex=0)
+      - A bearish OB at index 4 (OB=-1, OBTop=48500, OBMitigatedIndex=NaN)
+    """
+    n = 20
+    data: dict[str, list] = {col: [float("nan")] * n for col in [
+        "Timestamp", "Open", "High", "Low", "Close", "Volume",
+        "SwingHighLow", "SwingLevel", "SwingPivotIndex",
+        "BOS", "CHOCH", "BOSLevel", "BrokenIndex",
+        "OB", "OBTop", "OBBottom", "OBVolume", "OBMitigatedIndex", "OBPct",
+        "Liquidity", "LiqLevel", "LiqEnd", "LiqSwept",
+        "RetraceDirection", "CurrentRetracement%", "DeepestRetracement%",
+    ]}
+
+    # Swings
+    data["SwingHighLow"][3] = 1.0
+    data["SwingLevel"][3] = 51000.0
+    data["SwingHighLow"][5] = -1.0
+    data["SwingLevel"][5] = 49000.0
+
+    # BOS
+    data["BOS"][4] = 1.0
+    data["BrokenIndex"][4] = 6.0
+
+    # CHOCH
+    data["CHOCH"][3] = -1.0
+    data["BrokenIndex"][3] = 7.0
+
+    # Liquidity
+    data["Liquidity"][2] = 1.0
+    data["LiqLevel"][2] = 51000.0
+    data["LiqSwept"][2] = 0.0
+    data["Liquidity"][5] = -1.0
+    data["LiqLevel"][5] = 48000.0
+    data["LiqSwept"][5] = float("nan")
+
+    # Order blocks
+    data["OB"][3] = 1.0
+    data["OBTop"][3] = 50200.0
+    data["OBBottom"][3] = 49500.0
+    data["OBMitigatedIndex"][3] = 0.0
+    data["OB"][4] = -1.0
+    data["OBTop"][4] = 48500.0
+    data["OBBottom"][4] = 48000.0
+    data["OBMitigatedIndex"][4] = float("nan")
+
+    return pd.DataFrame(data)
+
+
+@pytest.fixture(scope="function")
+def sample_snapshot() -> MarketSnapshot:
+    """MarketSnapshot with known values for scorer tests.
+
+    All bullish conditions active:
+      - close=50000 > ema21=49000
+      - ema21_slope=0.01 > 0
+      - macd=100 > macd_signal=90
+      - rsi14=60 > 55
+      - mfi14=55 > 50
+      - last_bos_direction=1 (bullish BOS)
+      - nearest_liquidity_above=51000
+      - nearest_liquidity_below=None
+    """
+    from market_snapshot import MarketSnapshot
+    return MarketSnapshot(
+        symbol="BTC/USDT",
+        timeframe="1d",
+        timestamp=pd.Timestamp("2024-06-01"),
+        close=50000.0,
+        trend_direction="above",
+        ema21=49000.0,
+        ema21_slope=0.01,
+        rsi14=60.0,
+        mfi14=55.0,
+        macd=100.0,
+        macd_signal=90.0,
+        macd_hist=10.0,
+        atr14=500.0,
+        bb_width=0.05,
+        last_bos_direction=1,
+        nearest_liquidity_above=51000.0,
+    )
+
+
+@pytest.fixture(scope="function")
+def bearish_snapshot() -> MarketSnapshot:
+    """MarketSnapshot with all bearish conditions.
+
+      - close=48000 < ema21=49000
+      - ema21_slope=-0.01 < 0
+      - macd=50 < macd_signal=90
+      - rsi14=40 <= 55
+      - mfi14=35 <= 50
+      - last_bos_direction=-1 (bearish BOS)
+      - nearest_liquidity_below=47000
+      - nearest_liquidity_above=None
+    """
+    from market_snapshot import MarketSnapshot
+    return MarketSnapshot(
+        symbol="BTC/USDT",
+        timeframe="1d",
+        timestamp=pd.Timestamp("2024-06-01"),
+        close=48000.0,
+        trend_direction="below",
+        ema21=49000.0,
+        ema21_slope=-0.01,
+        rsi14=40.0,
+        mfi14=35.0,
+        macd=50.0,
+        macd_signal=90.0,
+        macd_hist=-5.0,
+        atr14=500.0,
+        bb_width=0.05,
+        last_bos_direction=-1,
+        nearest_liquidity_below=47000.0,
+    )
+
+
+@pytest.fixture(scope="function")
+def neutral_snapshot() -> MarketSnapshot:
+    """MarketSnapshot with neutral conditions (score in 4-6 range).
+
+      - close=49500 > ema21=49000 (just above)
+      - ema21_slope=-0.005 <= 0
+      - macd=85 < macd_signal=90
+      - rsi14=50 <= 55
+      - mfi14=45 <= 50
+      - last_bos_direction=None
+      - nearest_liquidity_above=51000
+      - nearest_liquidity_below=None
+    """
+    from market_snapshot import MarketSnapshot
+    return MarketSnapshot(
+        symbol="BTC/USDT",
+        timeframe="1d",
+        timestamp=pd.Timestamp("2024-06-01"),
+        close=49500.0,
+        trend_direction="above",
+        ema21=49000.0,
+        ema21_slope=-0.005,
+        rsi14=50.0,
+        mfi14=45.0,
+        macd=85.0,
+        macd_signal=90.0,
+        macd_hist=-2.0,
+        atr14=500.0,
+        bb_width=0.05,
+        nearest_liquidity_above=51000.0,
+    )

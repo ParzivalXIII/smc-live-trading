@@ -1,0 +1,26 @@
+Verification: MarketContext.alignment() all-neutral fix
+=====================================================
+
+Date: 2026-06-24
+File examined: confluence.py (lines 180-205)
+
+Fix confirmed:
+- Line 203-204: `if all(b == "neutral" for b in biases): return "neutral"` is in place,
+  immediately before the `return "mixed"` fallthrough on line 205.
+
+Previously, `alignment()` would return `"mixed"` when all active timeframes
+had `"neutral"` bias, because only `all(b == "bullish")` and `all(b == "bearish")`
+were checked before the fallthrough.
+
+Test results: 12/12 passed (python -m pytest tests/test_market_snapshot.py::TestMarketContext -v)
+- test_all_none              PASSED  (covers the all-neutral scenario)
+- test_all_bullish_alignment PASSED
+- test_all_bearish_alignment PASSED
+- test_mixed_alignment       PASSED
+- test_partial_2_of_3        PASSED
+- test_single_timeframe      PASSED
+- test_single_timeframe_bearish PASSED
+- test_composite_score tests x5 PASSED
+
+Verdict: Fix applied correctly, all alignment edge cases now handled,
+         and the full MarketContext test suite passes.

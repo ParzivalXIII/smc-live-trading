@@ -1,0 +1,265 @@
+MarketSnapshot System — Implementation Complete
+================================================
+
+Plan:    .sisyphus/plans/market-snapshot.md
+Files:   market_snapshot.py (309 lines)
+         confluence.py (244 lines)
+Tests:   tests/test_market_snapshot.py (833 lines, 77 tests)
+Date:    2026-06-23
+
+
+Architecture
+------------
+
+Three-layer separation:
+
+  market_snapshot.py        confluence.py
+  ┌─────────────────┐      ┌────────────────────┐
+  │ MarketSnapshot  │      │ ConfluenceResult   │
+  │   (state only)  │ ──→  │ ConfluenceScorer   │
+  │                 │      │ MarketContext      │
+  │ SnapshotBuilder │      │   (multi-TF)       │
+  └─────────────────┘      └────────────────────┘
+         ↑
+  TA DataFrame + SMC Report
+
+  Layer 1: MarketSnapshot — pure state, no opinions, no calculations.
+  Layer 2: ConfluenceScorer — additive scoring, transparent reasons.
+  Layer 3: MarketContext — multi-timeframe alignment.
+
+  No file I/O in production classes.
+  No circular imports.
+  SnapshotBuilder designed for batch/historical data (streaming integration deferred).
+
+
+MarketSnapshot (market_snapshot.py)
+-----------------------------------
+
+  @dataclass
+  class MarketSnapshot:
+      # Identity
+      symbol: str
+      timeframe: str
+      timestamp: pd.Timestamp
+      close: float
+
+      # Trend
+      trend_direction: str         # "above" / "below" / "at" (from ema_signal logic)
+      ema21: float
+      ema21_slope: float
+
+      # Momentum
+      rsi14: float
+      mfi14: float
+      macd: float
+      macd_signal: float
+      macd_hist: float
+
+      # Volatility
+      atr14: float
+      bb_width: float
+
+      # Structure (all Optional, None = no data)
+      last_swing_direction: int | None
+      last_swing_level: float | None
+      last_bos_direction: int | None
+      last_bos_index: int | None
+      last_choch_direction: int | None
+      last_choch_index: int | None
+
+      # Liquidity
+      nearest_liquidity_above: float | None
+      nearest_liquidity_below: float | None
+
+      # Order blocks
+      active_bullish_ob: float | None
+      active_bearish_ob: float | None
+
+  24 fields. All optional structure/liquidity/OB fields default to None.
+  trend_direction computed via ema_signal() threshold logic (0.1%).
+
+
+SnapshotBuilder (market_snapshot.py)
+-------------------------------------
+
+  class SnapshotBuilder:
+      def build(symbol, timeframe, ta_row, smc_report) -> MarketSnapshot:
+
+  Input: TA row (pd.Series with ema21, rsi14, macd, etc.) + smc_report (pd.DataFrame)
+  Output: Fully populated MarketSnapshot
+
+  Mapping:
+    TA fields:        Direct 1:1 from ta_row (close, ema21, rsi14, etc.)
+    trend_direction:  Computed from close vs ema21 (ema_signal threshold)
+    Structure:        Last non-NaN scan of smc_report columns
+    Liquidity:        Scan smc_report for un-swept zones nearest above/below close
+    Order blocks:     Scan smc_report for unmitigated OBs nearest above/below close
+
+  Performance note: Designed for per-candle use, not per-tick (full DataFrame scan).
+
+
+ConfluenceScorer (confluence.py)
+---------------------------------
+
+  Additive scoring, -4 to 10 range:
+
+    Condition                          Points
+    ───────────────────────────────    ─────
+    Price above EMA21                  +2
+    EMA21 rising (slope > 0)           +1
+    MACD above signal                  +1
+    RSI > 55                           +1
+    MFI > 50                           +1
+    Bullish BOS confirmed              +3
+    Bearish BOS confirmed              -3
+    Liquidity above (target)           +1
+    Liquidity below (risk)             -1
+                                    ───────
+    Range:                           -4 to 10
+
+  Bias mapping:
+    < 0     → bearish
+    0 - 3   → bearish
+    4 - 6   → neutral
+    7 - 10  → bullish
+
+  Example (bullish scenario):
+    Score: 10/10
+    Bias:  bullish
+    Reasons:
+      - Price above EMA21
+      - EMA21 rising
+      - MACD above signal
+      - RSI 62.3 > 55
+      - MFI 58.1 > 50
+      - Bullish BOS confirmed
+      - Liquidity above (target)
+
+  Both liquidity conditions can fire simultaneously (net 0). Intentional — both
+  are factual observations. The trader sees both reasons for decision support.
+
+
+MarketContext (confluence.py)
+------------------------------
+
+  @dataclass
+  class MarketContext:
+      daily: MarketSnapshot | None = None
+      h4:    MarketSnapshot | None = None
+      h1:    MarketSnapshot | None = None
+
+  composite_score(): Sums all active timeframe scores.
+    max_score = len(active) * 10 (normalized, not hardcoded 30)
+
+  alignment():
+    All bullish → "bullish"
+    All bearish → "bearish"
+    All neutral → "neutral"
+    Mixed       → "mixed"
+    No data     → "neutral"
+    Single TF   → that TF's bias
+
+
+Momus Fixes Applied (8 items)
+------------------------------
+
+  Critical (1):
+    C1 — Score range: -4 to 10, not clamped to 0. Bias mapping includes < 0: bearish.
+
+  Important (3):
+    I2 — Production data flow scope documented (batch-first, streaming deferred).
+    I3 — max_score normalized to len(active) * 10.
+    I4 — Single-TF alignment returns that TF's bias.
+
+  Minor (4):
+    M5 — Liquidity scoring can net zero, documented as intentional.
+    M6 — Performance assumption: per-candle, not per-tick.
+    M7 — trend_direction design finalized (no trend_detail field).
+    M8 — QA scenario drafting artifacts removed.
+
+  Post-Oracle fix:
+    alignment(): Added all(b == "neutral") → "neutral" guard.
+
+
+Test Results — 77 tests, 76 pass
+----------------------------------
+
+  Test Class                       Tests  Coverage
+  ─────────────────────────────    ─────  ────────
+  TestMarketSnapshot                 15   Field presence, optional defaults,
+                                          type checks, trend_direction
+                                          parametrized (9 cases), slots
+
+  TestSnapshotBuilder                14   TA mapping, trend direction (3),
+                                          structure (swing/BOS/CHOCH),
+                                          liquidity above/below, OB (bull/bear),
+                                          empty/NaN/swept/mitigated
+
+  TestConfluenceResult                4   Construction, attributes,
+                                          empty reasons, slots
+
+  TestConfluenceScorer               18   All-bullish (10), all-bearish (-4),
+                                          9 isolated conditions, boundary scores
+                                          (8 parametrized + 2), None handling,
+                                          reasons, max_score, both liquidity
+
+  TestMarketContext                  11   Alignment (bull/bear/mixed/partial/
+                                          single/all-None), composite score
+                                          (2/3 active, mixed, zero), reasons
+
+  TestIntegration                     3   Real TA CSV build, scoring,
+                                          multi-TF context (1 skipped: needs
+                                          3 real data files)
+
+  ─────────────────────────────    ─────
+  Total                              77   76 passed, 1 skipped
+
+
+Files Created
+--------------
+
+  File                        Lines  Description
+  ────                        ─────  ───────────
+  market_snapshot.py            309  MarketSnapshot + SnapshotBuilder
+  confluence.py                 244  ConfluenceResult, ConfluenceScorer,
+                                     MarketContext
+  tests/test_market_snapshot.py 833  77 tests across 6 classes
+
+  Modified:
+  tests/conftest.py            +189  Added sample_ta_row, sample_smc_report,
+                                     sample_snapshot, bearish_snapshot,
+                                     neutral_snapshot fixtures
+
+
+Guardrails Verified
+--------------------
+
+  ❌ No changes to smc.py (engine untouched)
+  ❌ No changes to backtest.py (harness untouched)
+  ❌ No changes to trade_scripts/analyze_ta.py (TA engine untouched)
+  ❌ No new dependencies added
+  ❌ No file I/O in production classes (SnapshotBuilder/Scorer)
+  ❌ Clean separation: snapshot (state) vs scoring (opinion) vs context (alignment)
+  ✅ Scoring only in confluence.py — zero opinions in market_snapshot.py
+
+
+Usage
+------
+
+  from market_snapshot import MarketSnapshot, SnapshotBuilder
+  from confluence import ConfluenceScorer, MarketContext
+
+  # Build a snapshot
+  builder = SnapshotBuilder()
+  snapshot = builder.build("BTC/USDT", "1d", ta_row, smc_report)
+
+  # Score it
+  result = ConfluenceScorer().score(snapshot)
+  print(f"{result.bias} {result.score}/{result.max_score}")
+  for reason in result.reasons:
+      print(f"  - {reason}")
+
+  # Multi-timeframe context
+  ctx = MarketContext(daily=daily_snap, h4=h4_snap, h1=h1_snap)
+  print(ctx.alignment())       # "bullish" / "bearish" / "neutral" / "mixed"
+  print(ctx.composite_score())
