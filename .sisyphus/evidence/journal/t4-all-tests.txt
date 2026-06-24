@@ -1,0 +1,36 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 27 items
+
+tests/test_journal.py::TestMakeRunId::test_run_id_format PASSED          [  3%]
+tests/test_journal.py::TestMakeRunId::test_run_id_uniqueness PASSED      [  7%]
+tests/test_journal.py::TestMakeRunId::test_run_id_symbol_sanitization PASSED [ 11%]
+tests/test_journal.py::TestJournalEntry::test_entry_construction PASSED  [ 14%]
+tests/test_journal.py::TestJournalEntry::test_entry_empty_events PASSED  [ 18%]
+tests/test_journal.py::TestJournalEntry::test_entry_none_fields PASSED   [ 22%]
+tests/test_journal.py::TestJournalEntry::test_entry_with_events PASSED   [ 25%]
+tests/test_journal.py::TestJournalEntry::test_entry_breakout_pending_bool PASSED [ 29%]
+tests/test_journal.py::TestJournalWriter::test_append_and_flush PASSED   [ 33%]
+tests/test_journal.py::TestJournalWriter::test_context_manager_lifecycle PASSED [ 37%]
+tests/test_journal.py::TestJournalWriter::test_flush_creates_tables PASSED [ 40%]
+tests/test_journal.py::TestJournalWriter::test_flush_is_transactional PASSED [ 44%]
+tests/test_journal.py::TestJournalWriter::test_buffer_auto_flush PASSED  [ 48%]
+tests/test_journal.py::TestJournalWriter::test_buffer_size_zero PASSED   [ 51%]
+tests/test_journal.py::TestJournalWriter::test_double_close_safety PASSED [ 55%]
+tests/test_journal.py::TestJournalWriter::test_multiple_flush_rounds PASSED [ 59%]
+tests/test_journal.py::TestJournalWriter::test_nan_close_handling PASSED [ 62%]
+tests/test_journal.py::TestJournalWriter::test_round_trip PASSED         [ 66%]
+tests/test_journal.py::TestJournalWriter::test_round_trip_bool_none PASSED [ 70%]
+tests/test_journal.py::TestJournalWriter::test_event_linking PASSED      [ 74%]
+tests/test_journal.py::TestJournalWriter::test_event_timestamp_column PASSED [ 77%]
+tests/test_journal.py::TestJournalWriter::test_query_runs PASSED         [ 81%]
+tests/test_journal.py::TestJournalWriter::test_query_runs_with_limit PASSED [ 85%]
+tests/test_journal.py::TestJournalWriter::test_created_at_auto_set PASSED [ 88%]
+tests/test_journal.py::TestJournalWriter::test_events_round_trip PASSED  [ 92%]
+tests/test_journal.py::TestJournalIntegration::test_full_pipeline_journal_integration PASSED [ 96%]
+tests/test_journal.py::TestJournalIntegration::test_full_pipeline_with_sample_snapshot PASSED [100%]
+
+============================== 27 passed in 3.60s ==============================

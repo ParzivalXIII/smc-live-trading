@@ -1,0 +1,7 @@
+ M pyproject.toml
+ M uv.lock
+?? .sisyphus/evidence/journal/
+?? .sisyphus/evidence/oracle-journal-design-review.md
+?? .sisyphus/plans/journal-implementation.md
+?? journal.py
+?? tests/test_journal.py

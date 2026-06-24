@@ -1,0 +1,17 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 27 items / 19 deselected / 8 selected
+
+tests/test_journal.py::TestMakeRunId::test_run_id_format PASSED          [ 12%]
+tests/test_journal.py::TestMakeRunId::test_run_id_uniqueness PASSED      [ 25%]
+tests/test_journal.py::TestMakeRunId::test_run_id_symbol_sanitization PASSED [ 37%]
+tests/test_journal.py::TestJournalEntry::test_entry_construction PASSED  [ 50%]
+tests/test_journal.py::TestJournalEntry::test_entry_empty_events PASSED  [ 62%]
+tests/test_journal.py::TestJournalEntry::test_entry_none_fields PASSED   [ 75%]
+tests/test_journal.py::TestJournalEntry::test_entry_with_events PASSED   [ 87%]
+tests/test_journal.py::TestJournalEntry::test_entry_breakout_pending_bool PASSED [100%]
+
+======================= 8 passed, 19 deselected in 0.16s =======================
