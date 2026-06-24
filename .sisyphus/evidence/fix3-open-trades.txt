@@ -1,0 +1,4 @@
+Total trade rows: 267
+Open trades (exit_index=None): 1
+  SHORT entry_idx=24361 entry_price=1.06007 pnl=0.0
+PASS

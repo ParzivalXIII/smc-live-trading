@@ -1,0 +1,52 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 94 items / 51 deselected / 43 selected
+
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[29.9-oversold] PASSED [  2%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[30.0-bearish] PASSED [  4%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[39.9-bearish] PASSED [  6%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[40.0-neutral-bearish] PASSED [  9%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[49.9-neutral-bearish] PASSED [ 11%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[50.0-neutral-bullish] PASSED [ 13%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[59.9-neutral-bullish] PASSED [ 16%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[60.0-bullish] PASSED [ 18%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[69.9-bullish] PASSED [ 20%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[70.0-overbought] PASSED [ 23%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_nan PASSED        [ 25%]
+tests/test_analyze_ta_units.py::TestMfiSignal::test_mfi_zone[19.9-oversold] PASSED [ 27%]
+tests/test_analyze_ta_units.py::TestMfiSignal::test_mfi_zone[20.0-bearish] PASSED [ 30%]
+tests/test_analyze_ta_units.py::TestMfiSignal::test_mfi_zone[39.9-bearish] PASSED [ 32%]
+tests/test_analyze_ta_units.py::TestMfiSignal::test_mfi_zone[40.0-neutral-bearish] PASSED [ 34%]
+tests/test_analyze_ta_units.py::TestMfiSignal::test_mfi_zone[49.9-neutral-bearish] PASSED [ 37%]
+tests/test_analyze_ta_units.py::TestMfiSignal::test_mfi_zone[50.0-neutral-bullish] PASSED [ 39%]
+tests/test_analyze_ta_units.py::TestMfiSignal::test_mfi_zone[59.9-neutral-bullish] PASSED [ 41%]
+tests/test_analyze_ta_units.py::TestMfiSignal::test_mfi_zone[60.0-bullish] PASSED [ 44%]
+tests/test_analyze_ta_units.py::TestMfiSignal::test_mfi_zone[79.9-bullish] PASSED [ 46%]
+tests/test_analyze_ta_units.py::TestMfiSignal::test_mfi_zone[80.0-overbought] PASSED [ 48%]
+tests/test_analyze_ta_units.py::TestMfiSignal::test_mfi_nan PASSED       [ 51%]
+tests/test_analyze_ta_units.py::TestObvSignal::test_obv_signal[obv_values0-confirming uptrend] PASSED [ 53%]
+tests/test_analyze_ta_units.py::TestObvSignal::test_obv_signal[obv_values1-confirming downtrend] PASSED [ 55%]
+tests/test_analyze_ta_units.py::TestObvSignal::test_obv_signal[obv_values2-neutral / choppy] PASSED [ 58%]
+tests/test_analyze_ta_units.py::TestObvSignal::test_obv_boundary_uptrend PASSED [ 60%]
+tests/test_analyze_ta_units.py::TestObvSignal::test_obv_boundary_downtrend PASSED [ 62%]
+tests/test_analyze_ta_units.py::TestObvSignal::test_obv_boundary_neutral PASSED [ 65%]
+tests/test_analyze_ta_units.py::TestObvSignal::test_obv_insufficient_data PASSED [ 67%]
+tests/test_analyze_ta_units.py::TestBbLabel::test_bb_position[99-100-50-0-upper_arr0-lower_arr0-expected_substrings0] PASSED [ 69%]
+tests/test_analyze_ta_units.py::TestBbLabel::test_bb_position[1-100-50-0-upper_arr1-lower_arr1-expected_substrings1] PASSED [ 72%]
+tests/test_analyze_ta_units.py::TestBbLabel::test_bb_position[50-100-50-0-upper_arr2-lower_arr2-expected_substrings2] PASSED [ 74%]
+tests/test_analyze_ta_units.py::TestBbLabel::test_bb_position[80-100-50-0-upper_arr3-lower_arr3-expected_substrings3] PASSED [ 76%]
+tests/test_analyze_ta_units.py::TestBbLabel::test_bb_position[20-100-50-0-upper_arr4-lower_arr4-expected_substrings4] PASSED [ 79%]
+tests/test_analyze_ta_units.py::TestBbLabel::test_bb_position[50-100-50-100-upper_arr5-lower_arr5-expected_substrings5] PASSED [ 81%]
+tests/test_analyze_ta_units.py::TestBbLabel::test_bb_position[95-100-50-0-upper_arr6-lower_arr6-expected_substrings6] PASSED [ 83%]
+tests/test_analyze_ta_units.py::TestBbLabel::test_bb_position[5-100-50-0-upper_arr7-lower_arr7-expected_substrings7] PASSED [ 86%]
+tests/test_analyze_ta_units.py::TestBbLabel::test_bb_position[39-100-50-0-upper_arr8-lower_arr8-expected_substrings8] PASSED [ 88%]
+tests/test_analyze_ta_units.py::TestBbLabel::test_bb_position[61-100-50-0-upper_arr9-lower_arr9-expected_substrings9] PASSED [ 90%]
+tests/test_analyze_ta_units.py::TestBbLabel::test_bb_squeeze PASSED      [ 93%]
+tests/test_analyze_ta_units.py::TestBbLabel::test_bb_expansion PASSED    [ 95%]
+tests/test_analyze_ta_units.py::TestBbLabel::test_bb_no_squeeze_normal PASSED [ 97%]
+tests/test_analyze_ta_units.py::TestBbLabel::test_bb_insufficient_squeeze_data PASSED [100%]
+
+====================== 43 passed, 51 deselected in 1.19s =======================

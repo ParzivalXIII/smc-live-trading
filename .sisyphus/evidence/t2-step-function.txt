@@ -1,0 +1,1 @@
+T2 step_function: first 50 close=100.0, last 50 close=110.0 — OK

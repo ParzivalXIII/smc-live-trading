@@ -1,0 +1,2 @@
+HTF only test: PASS
+bias=bullish, score=10.0, max_score=10

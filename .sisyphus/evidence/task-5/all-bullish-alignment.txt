@@ -1,0 +1,15 @@
+S5.1: Alignment = bullish (expected: bullish)
+S5.1 PASSED
+S5.2: Alignment = mixed (expected: mixed)
+S5.2 PASSED
+S5.3: Alignment (2 bullish, 1 None) = bullish (expected: bullish)
+S5.3 PASSED
+S5.4: Alignment (single bullish) = bullish (expected: bullish)
+S5.4 PASSED
+S5.5: Composite max_score = 20 (expected: 20)
+       Composite score = 18
+       Composite bias = bullish
+S5.5 PASSED
+S5.6: Alignment = neutral (expected: neutral)
+       Composite = score=0, max_score=0, bias=neutral
+S5.6 PASSED

@@ -1,0 +1,8 @@
+T5 QA: BOSFlipStrategy end-to-end
+Status: PASS
+Total trades: 260
+Wins: 182, Losses: 78
+Win rate: 0.7
+Net PnL: 0.5859
+Max drawdown: 0.044
+Timestamp: 2026-06-23

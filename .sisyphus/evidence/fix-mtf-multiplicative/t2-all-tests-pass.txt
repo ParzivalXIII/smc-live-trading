@@ -1,0 +1,15 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 6 items
+
+tests/test_market_snapshot.py::TestHierarchicalMTF::test_all_aligned PASSED [ 16%]
+tests/test_market_snapshot.py::TestHierarchicalMTF::test_one_conflicting_ltf PASSED [ 33%]
+tests/test_market_snapshot.py::TestHierarchicalMTF::test_both_conflicting PASSED [ 50%]
+tests/test_market_snapshot.py::TestHierarchicalMTF::test_no_ltfs_single_tf PASSED [ 66%]
+tests/test_market_snapshot.py::TestHierarchicalMTF::test_no_daily_htf_is_h4 PASSED [ 83%]
+tests/test_market_snapshot.py::TestHierarchicalMTF::test_neutral_htf_with_conflicting_ltf PASSED [100%]
+
+============================== 6 passed in 0.21s ===============================

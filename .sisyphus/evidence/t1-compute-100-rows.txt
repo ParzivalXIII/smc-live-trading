@@ -1,0 +1,1 @@
+PASS: 100 rows computes indicators normally

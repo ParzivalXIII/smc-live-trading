@@ -1,0 +1,25 @@
+--- T8: Integration test — streaming vs batch BOS ---
+Created tests/test_streaming_vs_batch.py
+
+Results (EURUSD-15M, 24424 rows):
+  -- Batch BOS --
+    Total: 546
+  -- Streaming Confirmed BOS --
+    Total confirmed: 553
+    Cancelled: 68
+    Provisional (end): 0
+  -- Cross-validation --
+    Matched: 513
+    Match rate: 94.0% (threshold: 80%)
+    Unmatched batch: 33 (break-in-gap / close_break asymmetry)
+    Unmatched streaming: 40 (streaming high/low vs batch close)
+  -- Confirmation delay (bars) --
+    Mean: 0.45
+    Min: 0
+    Max: 10
+
+All assertions passed:
+  - match_rate >= 0.40 ✓ (94.0%)
+  - cancelled_count > 0 ✓ (68)
+  - avg_confirm_delay >= 0 ✓ (0.45)
+  - provisional_count >= 0 ✓ (0)

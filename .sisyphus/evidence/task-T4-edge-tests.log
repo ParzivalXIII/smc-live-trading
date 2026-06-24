@@ -1,0 +1,23 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 14 items
+
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_bullish_narrative_all_sections PASSED [  7%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_bearish_narrative PASSED [ 14%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_neutral_narrative PASSED [ 21%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_no_structure_data PASSED [ 28%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_no_liquidity_data PASSED [ 35%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_all_sections_present PASSED [ 42%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_conclusion_format PASSED [ 50%]
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_nan_values PASSED [ 57%]
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_empty_result_reasons PASSED [ 64%]
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_symbol_timeframe_passthrough PASSED [ 71%]
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_score_zero PASSED [ 78%]
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_max_score_integrity PASSED [ 85%]
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_conclusion_format_bullish PASSED [ 92%]
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_section_ordering PASSED [100%]
+
+============================== 14 passed in 1.20s ==============================

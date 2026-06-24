@@ -1,0 +1,18 @@
+T6: Full integration test
+==========================
+Synthetic CSV: data/ohlcv_BTCUSDT_1d.csv (1000 rows, hourly data)
+Script: uv run python trade_scripts/analyze_ta.py BTC/USDT --timeframe 1d
+Output: data/ohlcv_BTCUSDT_1d_ta.csv
+
+Validation results:
+  Rows: 1000, Cols: 23
+  Missing columns: NONE ✓
+  Extra columns: NONE ✓
+  Timestamp monotonic: True ✓
+  Duplicate timestamps: 0 ✓
+  NaN after warmup (rows 50+): NONE ✓
+  load_ta_latest('BTC/USDT', '1d'): OK (non-None) ✓
+    keys: ['mfi14', 'obv', 'obv_slope', 'close', 'timestamp']
+  load_ta_series('BTC/USDT', '1d', tail=5): OK, shape: (5, 23) ✓
+
+ALL CHECKS PASSED: True

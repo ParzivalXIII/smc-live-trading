@@ -1,0 +1,2 @@
+[1;33mThank you for using SmartMoneyConcepts! ⭐ Please show your support by giving a star on the GitHub repository: [4;34mhttps://github.com/joshyattridge/smart-money-concepts[0m
+Export files: ['per_candle_report.csv', 'summary.txt', 'event_log.csv', 'metrics.json']

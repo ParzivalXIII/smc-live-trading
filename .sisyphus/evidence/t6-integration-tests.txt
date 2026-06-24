@@ -1,0 +1,34 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 25 items
+
+tests/test_analyze_ta_io.py::TestLoadCsv::test_normal PASSED             [  4%]
+tests/test_analyze_ta_io.py::TestLoadCsv::test_unsorted PASSED           [  8%]
+tests/test_analyze_ta_io.py::TestLoadCsv::test_duplicate_timestamps PASSED [ 12%]
+tests/test_analyze_ta_io.py::TestLoadCsv::test_empty_file PASSED         [ 16%]
+tests/test_analyze_ta_io.py::TestLoadCsv::test_missing_timestamp_column PASSED [ 20%]
+tests/test_analyze_ta_io.py::TestLoadCsv::test_extra_columns PASSED      [ 24%]
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_normal PASSED        [ 28%]
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_missing_file PASSED  [ 32%]
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_empty_file PASSED    [ 36%]
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_mfi14_nan PASSED     [ 40%]
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_obv_nan PASSED       [ 44%]
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_obv_slope_empty_string PASSED [ 48%]
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_obv_slope_none_string PASSED [ 52%]
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_obv_slope_valid_float PASSED [ 56%]
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_missing_mfi14_obv_columns PASSED [ 60%]
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_close_nan PASSED     [ 64%]
+tests/test_analyze_ta_io.py::TestLoadTaSeries::test_normal PASSED        [ 68%]
+tests/test_analyze_ta_io.py::TestLoadTaSeries::test_tail_greater_than_length PASSED [ 72%]
+tests/test_analyze_ta_io.py::TestLoadTaSeries::test_missing_file PASSED  [ 76%]
+tests/test_analyze_ta_io.py::TestLoadTaSeries::test_empty_file PASSED    [ 80%]
+tests/test_analyze_ta_io.py::TestLoadTaSeries::test_timestamp_parse PASSED [ 84%]
+tests/test_analyze_ta_io.py::TestLoadTaSeries::test_malformed_csv PASSED [ 88%]
+tests/test_analyze_ta_io.py::TestSaveEnrichedCsv::test_save_load_roundtrip PASSED [ 92%]
+tests/test_analyze_ta_io.py::TestSaveEnrichedCsv::test_concurrent_write_safety PASSED [ 96%]
+tests/test_analyze_ta_io.py::TestSaveEnrichedCsv::test_no_orphan_temp_files PASSED [100%]
+
+============================== 25 passed in 1.20s ==============================

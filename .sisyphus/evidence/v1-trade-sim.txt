@@ -1,0 +1,221 @@
+V1 Trade Simulator — Implementation Complete
+===============================================
+
+Plan:     .sisyphus/plans/v1-trade-simulator.md
+Files:    trade_simulator.py, strategies/bos_flip.py, strategies/__init__.py
+Modified: backtest.py (+134/-17)
+Engine:   smartmoneyconcepts/smc.py — ZERO changes
+Date:     2026-06-23
+
+
+Architecture
+------------
+
+Three-Phase BacktestHarness.run():
+
+  Phase 1 (Streaming)
+    _SwingEngine.update(i, row) bar-by-bar
+        ↓ swings_df
+  Phase 2 (Batch)
+    bos_choch(), ob(), liquidity(), retracements()
+        ↓ report (26 columns)
+  Phase 3 (Strategy Simulation) — NEW
+    for each row in report:
+        strategy.update(i, row, engine_result, simulator)
+            ↓
+        TradeSimulator.enter_long() / .close()
+            ↓
+        result.trades, result.equity_curve, result.metrics
+
+
+Files Created
+-------------
+
+trade_simulator.py (161 lines)
+├── Trade              Dataclass: side, entry/exit index/time/price, pnl
+├── TradeSimulator     Single-position engine
+│   ├── enter_long()     No-op if already long; close-then-enter if short
+│   ├── enter_short()    No-op if already short; close-then-enter if long
+│   ├── close()          No-op if flat
+│   └── equity_curve()   Cumulative realized PnL Series (indexed by exit_index)
+└── compute_trade_metrics()  9 trade metrics from Trade list
+
+strategies/bos_flip.py (65 lines)
+└── BOSFlipStrategy
+    └── update(index, row, engine_result, simulator)
+        Bullish BOS  → close short if short → enter long
+        Bearish BOS  → close long if long → enter short
+
+
+Files Modified
+--------------
+
+backtest.py (+134/-17)
+
+  StrategyCallback Protocol
+    update(self, candle_index, row, engine_result, simulator=None)
+    → simulator is OPTIONAL (= None default)
+    → Phase 1's 3-arg call still works without changes
+    → Phase 3 passes the real TradeSimulator
+
+  NoopStrategy
+    update(self, candle_index, row, engine_result, simulator=None) -> pass
+    → Backward compatible with existing code
+
+  BacktestResult
+    + trades: list | None = None        → DataFrame with 8 columns
+    + equity_curve: pd.Series | None = None
+
+  BacktestConfig
+    + slippage_bps: float = 0.0         → Placeholder for V2
+    + fee_bps: float = 0.0              → Placeholder for V2
+
+  BacktestHarness.__init__
+    + strategy_callback: StrategyCallback = NoopStrategy()
+
+  BacktestHarness.run() — Three-phase flow
+    Phase 1: swings_df, events = replay_phase(data, config)
+    Phase 2: report = batch_analysis_phase(data, report, config)
+    Phase 3: for i, row in report.iterrows():
+                 strategy.update(pos, row, engine_result, simulator)
+             trades = simulator.closed_trades
+             equity = simulator.equity_curve()
+             metrics = {**base_metrics, **trade_metrics}
+
+
+Momus Fixes Applied (11 items)
+-------------------------------
+
+Critical (1):
+  C1 — Protocol/NoopStrategy simulator param made optional (=None)
+        → 3-arg Phase 1 calls AND 4-arg Phase 3 calls both work
+
+Important (4):
+  I2 — BOS look-ahead bias documented in Known Limitations
+  I3 — Max drawdown limitation guardrailed (realized-PnL only)
+  I4 — profit_factor sentinel aligned to 1e9 everywhere
+  I5 — Migration note added for custom StrategyCallback users
+
+Minor (4):
+  M6 — slippage_bps + fee_bps placeholders in BacktestConfig
+  M7 — Empty trade log returns NaN for win_rate/profit_factor/drawdown
+  M8 — Future Work section added
+  M9 — Column naming documented (Phase 3 uppercase vs Phase 1 lowercase)
+
+
+Trade Metrics (9)
+------------------
+
+  total_trades     int      Total number of closed trades
+  wins             int      Number of winning trades (pnl > 0)
+  losses           int      Number of losing trades (pnl < 0)
+  win_rate         float    wins / total_trades (NaN if zero trades)
+  gross_profit     float    Sum of all positive PnLs
+  gross_loss       float    Sum of all negative PnLs (absolute)
+  profit_factor    float    gross_profit / gross_loss (1e9 if no losses; NaN if zero trades)
+  net_pnl          float    gross_profit - gross_loss
+  max_drawdown     float    Peak-to-trough of equity curve (NaN if zero trades)
+
+
+Results — BOSFlipStrategy on EURUSD 15M
+----------------------------------------
+
+Metric              Value
+──────────────────  ─────
+Total trades        260
+Wins / Losses       182 / 78
+Win rate            70.0%
+Gross profit        0.8177
+Gross loss          0.2318
+Profit factor       3.53
+Net PnL             0.5859
+Max drawdown        0.0440
+
+Trade log (sample):
+  SHORT entry=0.97399 exit=0.96905 pnl=+0.00494
+   LONG entry=0.96905 exit=0.97154 pnl=+0.00249
+  SHORT entry=0.97154 exit=0.96873 pnl=+0.00281
+  ...
+   LONG entry=1.05166 exit=1.06007 pnl=+0.00841
+
+Equity curve: 0.0049 → 0.5859 (cumulative realized PnL)
+
+
+Test Results
+-------------
+
+Test                                 Result
+────                                 ──────
+python tests/unit_tests.py           16/16 PASS
+python tests/test_causality.py       ALL CHECKS PASSED
+python tests/stream_compare.py       PASS — 0 differences
+
+TradeSimulator unit tests:
+  t1-create-trade-simulator.txt      ✅ TradeSimulator creates empty state
+  t1-enter-long.txt                  ✅ enter_long opens position
+  t1-double-entry-same-side.txt      ✅ enter_long twice = no-op
+  t1-flip-long-to-short.txt          ✅ enter_long then enter_short = flip
+  t1-equity-curve.txt                ✅ equity_curve returns Series with cumulative PnL
+
+compute_trade_metrics tests:
+  t2-metrics-on-trades.txt           ✅ All metrics computed correctly
+  t2-profit-factor-no-losses.txt     ✅ profit_factor = 1e9 when no losses
+  t2-empty-trades.txt                ✅ Empty trades → NaN for rate metrics
+
+BOSFlipStrategy tests:
+  t4-bosflip-long-trade.txt          ✅ Bullish BOS → enters long
+  t4-bosflip-flip-trade.txt          ✅ BOS flip → closes + reverses
+
+Integration tests:
+  t6-noop-regression.txt             ✅ Noop strategy = 0 trades, no crashes
+  t6-bosflip-e2e.txt                 ✅ Full pipeline: trades + equity + metrics
+
+
+Key Design Decisions
+--------------------
+
+  Decision                    Choice
+  ──────────                  ─────
+  Strategy execution phase    Phase 3 (after batch) — BOS only available post-batch
+  Row content                 Full report row (26 cols: BOS, OB, swings, etc.)
+  Entry/exit price            Close of signal bar (V1 simplicity)
+  Equity curve                Realized PnL only (no mark-to-market)
+  Position model              Single position (0 or 1 — no hedging)
+  Simulator in strategy       Passed as argument, not global
+  smc.py changes              ZERO (guardrail enforced)
+
+
+Usage
+-----
+
+Python API:
+
+  from backtest import BacktestConfig, BacktestHarness
+  from strategies.bos_flip import BOSFlipStrategy
+
+  cfg = BacktestConfig(swing_length=5, confirmation_bars=2)
+  strategy = BOSFlipStrategy()
+  harness = BacktestHarness(cfg, strategy_callback=strategy)
+  result = harness.run("BTCUSDT_4H.csv")
+
+  result.trades         → DataFrame: side, entry/exit, pnl
+  result.equity_curve   → Series: cumulative PnL
+  result.metrics        → dict: 18 base + 9 trade metrics
+
+Custom strategy:
+
+  class MyStrategy:
+      def update(self, index, row, engine_result, simulator=None):
+          if row.get("HighLow") == 1:  # swing high
+              simulator.enter_short(index, row.name, row["Close"])
+
+
+V2 Directions (Future Work)
+----------------------------
+
+  - Streaming-compatible signal detection (not retroactive BOS)
+  - Trend filters (only trade BOS aligned with higher-timeframe trend)
+  - Intra-trade mark-to-market for accurate max_drawdown
+  - Fee/slippage models (fields in BacktestConfig ready)
+  - Multiple position support
+  - ATR-based stops and take-profit

@@ -1,0 +1,11 @@
+T2: analyze_ta.py runs without KeyError
+=========================================
+Command: uv run python trade_scripts/analyze_ta.py BTC/USDT --timeframe 1d 2>&1
+
+Result: Script completed successfully with no KeyError.
+
+Output (last lines):
+  Price vs BB : inside
+  EMA21 Slope : -0.0014
+  MACD Cross  : bearish_cross
+  → data/ohlcv_BTCUSDT_1d_ta.csv

@@ -1,0 +1,5 @@
+Shape: (24424, 4)
+Columns: ['Liquidity', 'Level', 'End', 'Swept']
+Liquidity non-NaN: 501
+Valid End/Swept pairs: 501
+All Swept > End: False

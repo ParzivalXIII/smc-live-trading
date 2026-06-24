@@ -1,0 +1,52 @@
+{
+  "BTCUSDT-4H": {
+    "total_trades": 186,
+    "wins": 117,
+    "losses": 69,
+    "win_rate": 0.629,
+    "avg_win": 4222.994188,
+    "avg_loss": 2572.246087,
+    "expectancy": 1702.179247,
+    "profit_factor": 2.7838
+  },
+  "SOLUSDT-4H": {
+    "total_trades": 149,
+    "wins": 103,
+    "losses": 46,
+    "win_rate": 0.6913,
+    "avg_win": 16.02895,
+    "avg_loss": 11.630526,
+    "expectancy": 7.489783,
+    "profit_factor": 3.0859
+  },
+  "ADAUSDT-4H": {
+    "total_trades": 182,
+    "wins": 132,
+    "losses": 50,
+    "win_rate": 0.7253,
+    "avg_win": 0.097644,
+    "avg_loss": 0.048525,
+    "expectancy": 0.057487,
+    "profit_factor": 5.3122
+  },
+  "BNBUSDT-4H": {
+    "total_trades": 197,
+    "wins": 136,
+    "losses": 61,
+    "win_rate": 0.6904,
+    "avg_win": 34.423148,
+    "avg_loss": 29.1576,
+    "expectancy": 14.735708,
+    "profit_factor": 2.6321
+  },
+  "EURUSD-15M": {
+    "total_trades": 266,
+    "wins": 162,
+    "losses": 104,
+    "win_rate": 0.609,
+    "avg_win": 0.004213,
+    "avg_loss": 0.00349,
+    "expectancy": 0.001201,
+    "profit_factor": 1.8805
+  }
+}

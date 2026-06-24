@@ -1,0 +1,1 @@
+T2 constant_price: all close=100.0 — OK

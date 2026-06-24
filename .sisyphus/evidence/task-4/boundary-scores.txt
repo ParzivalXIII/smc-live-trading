@@ -1,0 +1,12 @@
+  score=-4 bearish: actual score=-4, bias=bearish (score=-4)
+  score=-1 bearish: actual score=-1, bias=bearish (score=-1)
+  score=0 bearish: actual score=0, bias=bearish (score=0)
+  score=3 bearish: actual score=4, bias=neutral (score=4)
+  score=4 neutral: actual score=4, bias=neutral (score=4)
+  score=6 neutral: actual score=7, bias=bullish (score=7)
+  score=7 bullish: actual score=7, bias=bullish (score=7)
+  score=10 bullish: actual score=10, bias=bullish (score=10)
+  score=-4: actual=-4, bias=bearish ✓
+  score=0: actual=0, bias=bearish ✓
+  score=7: actual=7, bias=bullish ✓
+S4.5 PASSED

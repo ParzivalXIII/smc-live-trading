@@ -1,0 +1,53 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 7 items
+
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_bullish_narrative_all_sections FAILED [ 14%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_bearish_narrative FAILED [ 28%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_neutral_narrative FAILED [ 42%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_no_structure_data FAILED [ 57%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_no_liquidity_data FAILED [ 71%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_all_sections_present FAILED [ 85%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_conclusion_format FAILED [100%]
+
+=================================== FAILURES ===================================
+________ TestMarketNarrativeBuilder.test_bullish_narrative_all_sections ________
+tests/test_narrative.py:32: in test_bullish_narrative_all_sections
+    from narrative import MarketNarrativeBuilder
+E   ModuleNotFoundError: No module named 'narrative'
+______________ TestMarketNarrativeBuilder.test_bearish_narrative _______________
+tests/test_narrative.py:77: in test_bearish_narrative
+    from narrative import MarketNarrativeBuilder
+E   ModuleNotFoundError: No module named 'narrative'
+______________ TestMarketNarrativeBuilder.test_neutral_narrative _______________
+tests/test_narrative.py:105: in test_neutral_narrative
+    from narrative import MarketNarrativeBuilder
+E   ModuleNotFoundError: No module named 'narrative'
+______________ TestMarketNarrativeBuilder.test_no_structure_data _______________
+tests/test_narrative.py:116: in test_no_structure_data
+    from narrative import MarketNarrativeBuilder
+E   ModuleNotFoundError: No module named 'narrative'
+______________ TestMarketNarrativeBuilder.test_no_liquidity_data _______________
+tests/test_narrative.py:151: in test_no_liquidity_data
+    from narrative import MarketNarrativeBuilder
+E   ModuleNotFoundError: No module named 'narrative'
+_____________ TestMarketNarrativeBuilder.test_all_sections_present _____________
+tests/test_narrative.py:184: in test_all_sections_present
+    from narrative import MarketNarrativeBuilder
+E   ModuleNotFoundError: No module named 'narrative'
+______________ TestMarketNarrativeBuilder.test_conclusion_format _______________
+tests/test_narrative.py:200: in test_conclusion_format
+    from narrative import MarketNarrativeBuilder
+E   ModuleNotFoundError: No module named 'narrative'
+=========================== short test summary info ============================
+FAILED tests/test_narrative.py::TestMarketNarrativeBuilder::test_bullish_narrative_all_sections - ModuleNotFoundError: No module named 'narrative'
+FAILED tests/test_narrative.py::TestMarketNarrativeBuilder::test_bearish_narrative - ModuleNotFoundError: No module named 'narrative'
+FAILED tests/test_narrative.py::TestMarketNarrativeBuilder::test_neutral_narrative - ModuleNotFoundError: No module named 'narrative'
+FAILED tests/test_narrative.py::TestMarketNarrativeBuilder::test_no_structure_data - ModuleNotFoundError: No module named 'narrative'
+FAILED tests/test_narrative.py::TestMarketNarrativeBuilder::test_no_liquidity_data - ModuleNotFoundError: No module named 'narrative'
+FAILED tests/test_narrative.py::TestMarketNarrativeBuilder::test_all_sections_present - ModuleNotFoundError: No module named 'narrative'
+FAILED tests/test_narrative.py::TestMarketNarrativeBuilder::test_conclusion_format - ModuleNotFoundError: No module named 'narrative'
+============================== 7 failed in 0.77s ===============================

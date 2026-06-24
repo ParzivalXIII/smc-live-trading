@@ -1,0 +1,10 @@
+S4.4: None handling → score=0, bias=bearish, reasons=8
+  close (0.00) <= ema21 (10.00): +0
+  ema21_slope (0.0000) <= 0: +0
+  macd (0.00) <= macd_signal (0.00): +0
+  rsi14 (50.0) <= 55: +0
+  mfi14 (50.0) <= 50: +0
+  last_bos_direction is None or 0: +0
+  nearest_liquidity_above is None: +0
+  nearest_liquidity_below is None: +0
+S4.4 PASSED

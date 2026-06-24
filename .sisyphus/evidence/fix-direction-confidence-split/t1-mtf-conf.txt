@@ -1,0 +1,2 @@
+dir_score=10, conf=0.28
+MTF composite OK

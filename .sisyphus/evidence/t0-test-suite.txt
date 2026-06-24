@@ -1,0 +1,5 @@
+--- T0: Verify baseline tests pass ---
+Unit tests: 16 passed in 51.75s
+Causality tests: 3 passed in 146.52s
+
+All 19 existing tests pass. Baseline established.

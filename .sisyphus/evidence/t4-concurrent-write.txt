@@ -1,0 +1,19 @@
+T4: Concurrent write test
+==========================
+Command:
+rm -f data/ohlcv_BTCUSDT_1d_ta.csv
+uv run python trade_scripts/analyze_ta.py BTC/USDT --timeframe 1d &
+uv run python trade_scripts/analyze_ta.py BTC/USDT --timeframe 1d &
+wait
+uv run python -c "
+import pandas as pd
+df = pd.read_csv('data/ohlcv_BTCUSDT_1d_ta.csv')
+assert len(df) > 0, 'Empty CSV after concurrent writes'
+assert df['timestamp'].is_monotonic_increasing, 'Timestamps not sorted'
+assert df['timestamp'].duplicated().sum() == 0, 'Duplicate timestamps'
+print(f'PASS: {len(df)} rows, sorted, no dups')
+"
+
+Result:
+Both script instances completed without error.
+PASS: 1000 rows, sorted, no dups

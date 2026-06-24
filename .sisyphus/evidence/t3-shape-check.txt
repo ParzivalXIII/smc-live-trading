@@ -1,0 +1,6 @@
+Shape: (24424, 2)
+Columns: ['HighLow', 'Level']
+HighLow dtype: float64
+Level dtype: float64
+Non-NaN HighLow count: 2415
+NaN count: 22009

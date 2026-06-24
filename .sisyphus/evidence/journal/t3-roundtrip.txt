@@ -1,0 +1,12 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 27 items / 24 deselected / 3 selected
+
+tests/test_journal.py::TestJournalWriter::test_round_trip PASSED         [ 33%]
+tests/test_journal.py::TestJournalWriter::test_round_trip_bool_none PASSED [ 66%]
+tests/test_journal.py::TestJournalWriter::test_events_round_trip PASSED  [100%]
+
+======================= 3 passed, 24 deselected in 0.94s =======================

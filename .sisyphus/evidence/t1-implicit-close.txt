@@ -1,0 +1,3 @@
+T1 QA: Multiple trades + implicit close
+Status: PASS
+Timestamp: 2026-06-23

@@ -1,0 +1,5 @@
+[1;33mThank you for using SmartMoneyConcepts! ⭐ Please show your support by giving a star on the GitHub repository: [4;34mhttps://github.com/joshyattridge/smart-money-concepts[0m
+             timestamp  candle_index  pivot_index  event_type    price                                             metadata  delay_bars
+0  2022-10-10 02:00:00            12            8  swing_high  0.97372  {"HighLow": 1.0, "Level": 0.97372, "delay_bars": 4}           4
+1  2022-10-10 04:00:00            27           20   swing_low  0.97250  {"HighLow": -1.0, "Level": 0.9725, "delay_bars": 7}           7
+Event recording: PASS

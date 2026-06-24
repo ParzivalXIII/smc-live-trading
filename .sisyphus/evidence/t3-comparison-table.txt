@@ -1,0 +1,3 @@
+--- T3: Cross-market comparison table ---
+Generated comparison_table.md at .sisyphus/evidence/bosflip-crossmarket/comparison_table.md
+Table includes all 5 datasets with 7 metrics each.

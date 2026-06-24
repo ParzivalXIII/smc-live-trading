@@ -1,0 +1,17 @@
+[1;33mThank you for using SmartMoneyConcepts! ⭐ Please show your support by giving a star on the GitHub repository: [4;34mhttps://github.com/joshyattridge/smart-money-concepts[0m
+=== Config 1: Default parameters ===
+1. Data loading: PASS
+2. Full run: 2415 swings: PASS
+3. Batch comparison: PASS
+4. Metrics: delay=2.12 bars: PASS
+5. Export: PASS
+
+=== Config 2: Custom parameters ===
+6. Parameter variation: 1299 swings (was 2415): PASS
+
+⚠️  Warning: Large dataset (200000 rows). Expected runtime may exceed 60 seconds.
+7. Large dataset warning: PASS
+
+==================================================
+ALL INTEGRATION TESTS PASSED
+==================================================

@@ -1,0 +1,3 @@
+T3 QA: BacktestResult backward compat
+Status: PASS
+Timestamp: 2026-06-23

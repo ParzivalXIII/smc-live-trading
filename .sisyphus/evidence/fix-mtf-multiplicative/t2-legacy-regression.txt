@@ -1,0 +1,21 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 12 items
+
+tests/test_market_snapshot.py::TestMarketContext::test_all_bullish_alignment PASSED [  8%]
+tests/test_market_snapshot.py::TestMarketContext::test_all_bearish_alignment PASSED [ 16%]
+tests/test_market_snapshot.py::TestMarketContext::test_mixed_alignment PASSED [ 25%]
+tests/test_market_snapshot.py::TestMarketContext::test_partial_2_of_3 PASSED [ 33%]
+tests/test_market_snapshot.py::TestMarketContext::test_single_timeframe PASSED [ 41%]
+tests/test_market_snapshot.py::TestMarketContext::test_single_timeframe_bearish PASSED [ 50%]
+tests/test_market_snapshot.py::TestMarketContext::test_all_none PASSED   [ 58%]
+tests/test_market_snapshot.py::TestMarketContext::test_composite_score_two_active PASSED [ 66%]
+tests/test_market_snapshot.py::TestMarketContext::test_composite_score_three_active PASSED [ 75%]
+tests/test_market_snapshot.py::TestMarketContext::test_composite_score_mixed PASSED [ 83%]
+tests/test_market_snapshot.py::TestMarketContext::test_composite_score_zero_active PASSED [ 91%]
+tests/test_market_snapshot.py::TestMarketContext::test_composite_score_reasons_present PASSED [100%]
+
+============================== 12 passed in 0.17s ==============================

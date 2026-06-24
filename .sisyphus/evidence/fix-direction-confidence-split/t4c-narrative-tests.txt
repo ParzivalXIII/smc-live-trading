@@ -1,0 +1,28 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 19 items
+
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_bullish_narrative_all_sections PASSED [  5%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_bearish_narrative PASSED [ 10%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_neutral_narrative PASSED [ 15%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_no_structure_data PASSED [ 21%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_no_liquidity_data PASSED [ 26%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_all_sections_present PASSED [ 31%]
+tests/test_narrative.py::TestMarketNarrativeBuilder::test_conclusion_format PASSED [ 36%]
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_nan_values PASSED [ 42%]
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_empty_result_reasons PASSED [ 47%]
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_symbol_timeframe_passthrough PASSED [ 52%]
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_score_zero PASSED [ 57%]
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_max_score_integrity PASSED [ 63%]
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_conclusion_format_bullish PASSED [ 68%]
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_section_ordering PASSED [ 73%]
+tests/test_narrative.py::TestIntegrationPipeline::test_full_pipeline_bullish PASSED [ 78%]
+tests/test_narrative.py::TestIntegrationPipeline::test_full_pipeline_bearish PASSED [ 84%]
+tests/test_narrative.py::TestIntegrationPipeline::test_full_pipeline_mtf_hierarchical PASSED [ 89%]
+tests/test_narrative.py::TestIntegrationPipeline::test_full_pipeline_narrative_decision_consistency PASSED [ 94%]
+tests/test_narrative.py::TestIntegrationPipeline::test_full_pipeline_snapshot_to_decision PASSED [100%]
+
+============================== 19 passed in 0.91s ==============================

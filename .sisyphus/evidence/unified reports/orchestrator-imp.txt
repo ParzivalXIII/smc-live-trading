@@ -1,0 +1,227 @@
+Orchestrator + LiveSmcBuffer — Implementation Complete
+=======================================================
+
+Plan:    .sisyphus/plans/orchestrator-implementation.md
+Files:   live_smc_buffer.py (220 lines)
+         orchestrator.py (267 lines)
+Tests:   tests/test_live_smc_buffer.py (146 lines, 13 tests)
+         tests/test_orchestrator.py (198 lines, 18 tests)
+Date:    2026-06-24
+
+
+Architecture
+------------
+
+  Live Loop / Replay Loop
+       │
+       │  orchestrator.step()
+       ▼
+  ┌─────────────────────────────────────────────────┐
+  │  LiveOrchestrator  (orchestrator.py)            │
+  │                                                  │
+  │  IDLE → LOAD → ANALYZE → DECIDE → JOURNAL       │
+  │         ↓         ↓        ↓        ↓           │
+  │     load_ta   Snapshot  Decision  JournalEntry   │
+  │     _series   Builder   Engine    + sync_write   │
+  │         ↓    +Scorer            → SQLite         │
+  │     LiveSmc   +Narrative                         │
+  │     Buffer                                       │
+  └─────────────────────────────────────────────────┘
+       │
+       ▼
+  ┌─────────────────────────────────────────────────┐
+  │  LiveSmcBuffer  (live_smc_buffer.py)             │
+  │                                                  │
+  │  _SwingEngine.update()  → swing detection        │
+  │  StructureEngine.update() → BOS/CHOCH            │
+  │  _recompute_downstream() → OB, liq, retrace      │
+  │                      (on swing confirmation)      │
+  │  get_smc_report() → 26-column rolling DataFrame  │
+  └─────────────────────────────────────────────────┘
+
+
+LiveSmcBuffer (live_smc_buffer.py)
+------------------------------------
+
+  Streaming SMC accumulator. Owns _SwingEngine + StructureEngine.
+  Runs batch OB/liquidity/retracements ONLY on swing confirmation.
+
+  Key design:
+    - Every candle: _SwingEngine.update() → result dict
+    - On swing confirmed: StructureEngine.update() + _recompute_downstream()
+    - Every candle: StructureEngine.check_confirmations()
+    - Report updated incrementally, trimmed to 200 rows
+
+  26-column report schema:
+    Timestamp, Open, High, Low, Close, Volume
+    SwingHighLow, SwingLevel, SwingPivotIndex
+    BOS, CHOCH, BOSLevel, BrokenIndex
+    OB, OBTop, OBBottom, OBVolume, OBMitigatedIndex, OBPct
+    Liquidity, LiqLevel, LiqEnd, LiqSwept
+    RetraceDirection, CurrentRetracement%, DeepestRetracement%
+
+  Column names match what SnapshotBuilder.build() expects.
+
+
+Orchestrator (orchestrator.py)
+-------------------------------
+
+  State machine that owns the pipeline. Pure orchestration —
+  no business logic, no scoring, no strategy.
+
+  States:
+    IDLE → LOAD → ANALYZE → DECIDE → JOURNAL → IDLE
+                                            ↘
+                                            ERROR (on exception)
+
+  OrchestratorContext:
+    symbol, timeframe, data_dir, db_path, mode ("live"/"replay")
+    Runtime: ta_row, smc_report, snapshot, confluence, narrative,
+             decision, entry (All None after reset())
+
+  _TRANSITIONS matrix validates all state transitions.
+  Invalid transitions raise RuntimeError.
+
+  Pipeline steps:
+    load()      — fetch TA data (or use pre-populated in replay mode),
+                  update LiveSmcBuffer
+    analyze()   — SnapshotBuilder.build() → ConfluenceScorer.score()
+                  → MarketNarrativeBuilder.build()
+    decide()    — DecisionEngine.decide()
+    journal()   — Build JournalEntry (persisted by caller)
+
+  step(): The one public method. Called by live or replay loop.
+    On failure: sets state to ERROR, stores _last_error, re-raises.
+    Caller must call reset() before retry.
+
+    reset(): Clears all runtime context, sets state to IDLE.
+             Works from ANY state (including ERROR).
+             Bypasses _transition() intentionally.
+
+
+Gap Solutions (Oracle-reviewed)
+--------------------------------
+
+  G1 — Replay mode:
+    OrchestratorContext.mode: str = "live"
+    load() returns early when mode == "replay"
+    Caller pre-populates ta_row and smc_report
+
+  G2 — Error recovery:
+    _TRANSITIONS dict validates all 6 states
+    _transition() raises RuntimeError on invalid
+    reset() clears runtime context, works from any state
+    step() has NO auto-recovery — caller owns retry policy
+
+  G3 — Async bridge:
+    sync_write_entry(writer, entry) wraps asyncio.run()
+    Orchestrator stays pure synchronous
+    Caller pattern: orch.step(); sync_write_entry(writer, entry)
+
+
+Oracle Post-Implementation Findings
+-------------------------------------
+
+  Critical (fixed):
+    No tests existed → 31 tests added (13 buffer + 18 orchestrator)
+    step() double-failure bug → state set directly, not via _transition()
+
+  Medium (fixed):
+    Double-failure bug in step() error handler resolved
+
+  Low (fixed):
+    Unused field import → cleaned
+    Concrete Optional types → used instead of bare Any
+
+
+Test Results — 112 pass, 1 skip
+---------------------------------
+
+  Test File                        Tests  Status
+  ─────────────────────────────    ─────  ──────
+  test_live_smc_buffer.py            13   ✅ All pass
+    test_default_construction
+    test_custom_params
+    test_update_returns_dict
+    test_cold_start_returns_nan
+    test_after_many_candles_report_26cols
+    test_report_window_trimmed
+    test_swing_eventually_confirmed
+    test_events_property
+    test_ob_columns_populated
+    test_liquidity_columns_populated
+    test_update_with_nan_row
+    test_report_not_empty
+    test_consecutive_updates
+
+  test_orchestrator.py               18   ✅ All pass
+    State machine (6)
+    Replay mode (3)
+    Pipeline guards (3)
+    Mock pipeline (2)
+    Error handling (3)
+    Sync write entry (1)
+
+  test_market_snapshot.py           82   ✅ 81/82 (1 skip)
+  ─────────────────────────────    ─────  ─────────
+  Total                            113   ✅ 112 pass, 1 skip
+
+
+Files Summary
+--------------
+
+  File                    Lines  Status
+  ────                    ─────  ──────
+  live_smc_buffer.py        220  Created
+  orchestrator.py           267  Created
+  tests/test_live_smc_buffer  146  Created
+  tests/test_orchestrator.py  198  Created
+
+  (Zero changes to existing files — guardrail enforced)
+
+
+Guardrails Verified
+--------------------
+
+  ✅ Zero changes to market_snapshot.py, confluence.py,
+     narrative.py, decision_engine.py, journal.py
+  ✅ Zero changes to smartmoneyconcepts/smc.py, structures.py
+  ✅ Zero changes to backtest.py, analyze_ta.py
+  ✅ No can_decide() or gating logic
+  ✅ No trade execution, order routing, or position management
+  ✅ No multi-timeframe logic (MarketContext's job)
+  ✅ BOS/CHOCH from StructureEngine, not batch bos_choch()
+  ✅ No auto-recovery inside step()
+  ✅ No JournalWriter import inside LiveOrchestrator
+
+
+Usage
+------
+
+  from orchestrator import LiveOrchestrator, OrchestratorContext, sync_write_entry
+  from live_smc_buffer import LiveSmcBuffer
+  from journal import JournalWriter
+
+  # Live mode
+  ctx = OrchestratorContext(symbol="BTCUSDT", timeframe="1d")
+  buf = LiveSmcBuffer()
+  orch = LiveOrchestrator(ctx, smc_buffer=buf)
+
+  async def main():
+      async with JournalWriter("journal.db") as writer:
+          while True:
+              try:
+                  orch.step()
+                  sync_write_entry(writer, orch.context.entry)
+              except Exception:
+                  if orch.state == OrchestrationState.ERROR:
+                      orch.reset()
+                  # Wait for next candle tick
+
+  # Replay mode (backtest)
+  for i in range(len(data)):
+      ctx = OrchestratorContext(symbol="BTCUSDT", timeframe="1d", mode="replay")
+      ctx.ta_row = ta_data.iloc[i]
+      ctx.smc_report = smc_report
+      orch = LiveOrchestrator(ctx)
+      orch.step()

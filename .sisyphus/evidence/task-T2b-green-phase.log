@@ -1,0 +1,49 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 18 items
+
+tests/test_decision_engine.py::TestDecisionEngine::test_look_for_longs PASSED [  5%]
+tests/test_decision_engine.py::TestDecisionEngine::test_avoid_shorts PASSED [ 11%]
+tests/test_decision_engine.py::TestDecisionEngine::test_stand_aside PASSED [ 16%]
+tests/test_decision_engine.py::TestDecisionEngine::test_watch_breakout_modifier PASSED [ 22%]
+tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_liquidity_first PASSED [ 27%]
+tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_swing_fallback PASSED [ 33%]
+tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_ema_fallback PASSED [ 38%]
+tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_no_fallback FAILED [ 44%]
+tests/test_decision_engine.py::TestDecisionEngine::test_target_bullish PASSED [ 50%]
+tests/test_decision_engine.py::TestDecisionEngine::test_target_bearish PASSED [ 55%]
+tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[10-1.0] PASSED [ 61%]
+tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[7-0.7] PASSED [ 66%]
+tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[4-0.4] PASSED [ 72%]
+tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[0-0.0] PASSED [ 77%]
+tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[-4-0.4] PASSED [ 83%]
+tests/test_decision_engine.py::TestDecisionEngine::test_neutral_invalidation_target_none PASSED [ 88%]
+tests/test_decision_engine.py::TestDecisionEngine::test_with_market_context FAILED [ 94%]
+tests/test_decision_engine.py::TestDecisionEngine::test_without_market_context PASSED [100%]
+
+=================================== FAILURES ===================================
+___________ TestDecisionEngine.test_invalidation_bullish_no_fallback ___________
+tests/test_decision_engine.py:217: in test_invalidation_bullish_no_fallback
+    assert decision.invalidation is None
+E   AssertionError: assert 0.0 is None
+E    +  where 0.0 = Decision(bias='bullish', confidence=0.7, action='look_for_longs', invalidation=0.0, target=None, breakout_pending=False, breakout_level=None).invalidation
+_________________ TestDecisionEngine.test_with_market_context __________________
+tests/test_decision_engine.py:333: in test_with_market_context
+    assert decision.bias == "bullish", f"Expected bullish, got {decision.bias}"
+E   AssertionError: Expected bullish, got mixed
+E   assert 'mixed' == 'bullish'
+E     
+E     - bullish
+E     + mixed
+=========================== short test summary info ============================
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_no_fallback - AssertionError: assert 0.0 is None
+ +  where 0.0 = Decision(bias='bullish', confidence=0.7, action='look_for_longs', invalidation=0.0, target=None, breakout_pending=False, breakout_level=None).invalidation
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_with_market_context - AssertionError: Expected bullish, got mixed
+assert 'mixed' == 'bullish'
+  
+  - bullish
+  + mixed
+========================= 2 failed, 16 passed in 0.50s =========================

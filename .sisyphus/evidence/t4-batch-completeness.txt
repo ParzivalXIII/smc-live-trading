@@ -1,0 +1,5 @@
+[1;33mThank you for using SmartMoneyConcepts! ⭐ Please show your support by giving a star on the GitHub repository: [4;34mhttps://github.com/joshyattridge/smart-money-concepts[0m
+bos_choch: shape=(24424, 4), columns=['BOS', 'CHOCH', 'Level', 'BrokenIndex']
+ob: shape=(24424, 6), columns=['OB', 'Top', 'Bottom', 'OBVolume', 'MitigatedIndex', 'Percentage']
+liquidity: shape=(24424, 4), columns=['Liquidity', 'Level', 'End', 'Swept']
+retracements: shape=(24424, 3), columns=['Direction', 'CurrentRetracement%', 'DeepestRetracement%']

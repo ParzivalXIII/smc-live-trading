@@ -1,0 +1,16 @@
+T4: Enriched CSV is readable
+=============================
+Command: ls -la data/ohlcv_BTCUSDT_1d_ta.csv && uv run python -c "
+import pandas as pd
+df = pd.read_csv('data/ohlcv_BTCUSDT_1d_ta.csv')
+print('rows:', len(df))
+print('cols:', list(df.columns))
+"
+
+Result:
+-rw------- 1 parzivalxiii parzivalxiii 268349 Jun 23 15:43 data/ohlcv_BTCUSDT_1d_ta.csv
+rows: 1000
+cols: ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'ema21', 'macd',
+       'macd_signal', 'macd_hist', 'rsi14', 'bb_upper', 'bb_mid', 'bb_lower',
+       'mfi14', 'obv', 'ebsw', 'atr14', 'macd_cross', 'ema21_slope',
+       'price_vs_bb', 'bb_width', 'obv_slope']

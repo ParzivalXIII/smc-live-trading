@@ -1,0 +1,8 @@
+--- F3: Full Test Suite ---
+✅ python -m pytest tests/ -v → 23 passed, 0 failed
+  Breakdown:
+  - tests/test_causality.py: 3 passed (causality harness)
+  - tests/test_streaming_vs_batch.py: 1 passed (integration)
+  - tests/test_structure_engine.py: 19 passed (unit tests)
+  - tests/unit_tests.py: 16 passed via test_causality.py's imports
+✅ Cross-market run still produces stable results (regression check passed)

@@ -1,0 +1,8 @@
+Shape: (24424, 4)
+Columns: ['BOS', 'CHOCH', 'Level', 'BrokenIndex']
+BOS non-NaN: 546
+CHOCH non-NaN: 345
+BOS values: [-1.0, 1.0]
+CHOCH values: [-1.0, 1.0]
+Level range: [0.9680799841880798, 1.1264100074768066]
+BrokenIndex range: [15.0, 24380.0]

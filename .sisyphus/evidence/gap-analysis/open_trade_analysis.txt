@@ -1,0 +1,26 @@
+======================================================================
+OPEN TRADE ANALYSIS RESULTS
+======================================================================
+
+Dataset              Closed     Open?      Side     UnrealPnL    Would▲WR?   
+──────────────────────────────────────────────────────────────────────
+BTCUSDT-4H           186        no         N/A      N/A          N/A         
+SOLUSDT-4H           149        YES        SHORT    23.210000    WIN ▲       
+ADAUSDT-4H           182        no         N/A      N/A          N/A         
+BNBUSDT-4H           197        YES        SHORT    70.390000    WIN ▲       
+EURUSD-15M           266        no         N/A      N/A          N/A         
+
+──────────────────────────────────────────────────────────────────────
+FINDINGS
+──────────────────────────────────────────────────────────────────────
+  Datasets with open positions at end: 2/5
+  TradeSimulator.to_dataframe() only returns CLOSED trades.
+  Open positions are SILENTLY DROPPED from metrics.
+  This means metrics reflect only the subset of trades that completed.
+
+  Inflated win rate risk (open win excluded): 2 datasets
+  Deflated win rate risk (open loss excluded): 0 datasets
+
+  VERDICT: Open positions at end of dataset are silently excluded.
+  This is a common backtest pitfall. The magnitude of impact depends
+  on whether open trades are winners or losers.

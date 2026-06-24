@@ -1,0 +1,5 @@
+[1;33mThank you for using SmartMoneyConcepts! ⭐ Please show your support by giving a star on the GitHub repository: [4;34mhttps://github.com/joshyattridge/smart-money-concepts[0m
+bos_choch: {'BOS': 546, 'CHOCH': 345, 'Level': 891, 'BrokenIndex': 1021}
+ob: {'OB': 61, 'Top': 61, 'Bottom': 61, 'OBVolume': 61, 'MitigatedIndex': 61, 'Percentage': 61}
+liquidity: {'Liquidity': 501, 'Level': 501, 'End': 501, 'Swept': 501}
+retracements: {'Direction': 24424, 'CurrentRetracement%': 24424, 'DeepestRetracement%': 24424}

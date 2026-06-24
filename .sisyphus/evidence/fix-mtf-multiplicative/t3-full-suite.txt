@@ -1,0 +1,12 @@
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_max_score_integrity PASSED [ 94%]
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_conclusion_format_bullish PASSED [ 95%]
+tests/test_narrative.py::TestNarrativeEdgeCases::test_narrative_section_ordering PASSED [ 96%]
+tests/test_narrative.py::TestIntegrationPipeline::test_full_pipeline_bullish PASSED [ 97%]
+tests/test_narrative.py::TestIntegrationPipeline::test_full_pipeline_bearish PASSED [ 97%]
+tests/test_narrative.py::TestIntegrationPipeline::test_full_pipeline_mtf_hierarchical PASSED [ 98%]
+tests/test_narrative.py::TestIntegrationPipeline::test_full_pipeline_narrative_decision_consistency PASSED [ 99%]
+tests/test_narrative.py::TestIntegrationPipeline::test_full_pipeline_snapshot_to_decision PASSED [100%]
+
+======================== 134 passed, 1 skipped in 1.41s ========================
+---
+unit_tests.py: 16 tests OK

@@ -1,0 +1,219 @@
+Journal System — Implementation Complete
+=========================================
+
+Plan:    .sisyphus/plans/journal-implementation.md
+File:    journal.py (326 lines)
+Tests:   tests/test_journal.py (977 lines, 27 tests)
+Date:    2026-06-24
+
+
+Purpose
+-------
+
+The Journal is an append-only, queryable record of every decision cycle.
+It answers: what the engine saw, what it scored, what it decided, and
+what events supported it. No scoring, no strategy logic, no backtest
+internals — pure storage.
+
+
+Architecture
+------------
+
+  Pipeline Classes (consumed, not modified)
+  ┌─────────────────────────────────┐
+  │ MarketSnapshot                  │
+  │ ConfluenceResult                │
+  │ MarketNarrative                 │
+  │ Decision                        │
+  │ StructureEvent                  │
+  └─────────────────────────────────┘
+                  ↓ (orchestration layer)
+           ┌──────────────┐
+           │ JournalEntry  │  ← dataclass
+           │ JournalWriter │  ← async SQLite writer
+           └──────────────┘
+                  ↓
+           ┌──────────────┐
+           │ journal.db   │
+           │ ├ journal_runs   │
+           │ └ journal_events │
+           └──────────────┘
+
+
+JournalEntry (journal.py)
+--------------------------
+
+  @dataclass
+  class JournalEntry:
+      run_id: str                   # Compound key: {symbol}_{timeframe}_{ts}_{uuid}
+      timestamp: pd.Timestamp
+      symbol: str
+      timeframe: str
+      close: float
+      direction_score: float
+      bias: str
+      confidence: float
+      narrative_summary: str
+      decision_action: str
+      decision_invalidation: float | None
+      decision_target: float | None
+      breakout_pending: bool
+      events: list[StructureEvent]  # Full event objects, not just IDs
+
+
+JournalWriter (journal.py)
+---------------------------
+
+  class JournalWriter:
+      async def __aenter__(self) -> JournalWriter    # Creates tables
+      async def __aexit__(self, *args) -> None        # Flushes + closes
+      async def append(self, entry: JournalEntry)     # Inserts run + events
+      async def flush(self) -> None                   # Commits transaction
+      async def query_runs(symbol, timeframe, limit)  # Returns list[dict]
+
+
+SQLite Schema
+--------------
+
+  journal_runs:
+    run_id              TEXT PRIMARY KEY     compound key
+    timestamp           TEXT NOT NULL
+    symbol              TEXT NOT NULL
+    timeframe           TEXT NOT NULL
+    close               REAL
+    direction_score     REAL
+    bias                TEXT
+    confidence          REAL
+    narrative_summary   TEXT
+    decision_action     TEXT
+    decision_invalidation REAL
+    decision_target     REAL
+    breakout_pending    INTEGER
+    created_at          TEXT   DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+    
+    INDEX idx_runs_symbol_timeframe ON (symbol, timeframe)
+    INDEX idx_runs_timestamp ON (timestamp)
+
+  journal_events:
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT
+    run_id              TEXT NOT NULL  → FK → journal_runs(run_id)
+    event_id            TEXT NOT NULL
+    event_type          TEXT
+    direction           INTEGER
+    status              TEXT
+    level               REAL
+    event_timestamp     TEXT
+    
+    INDEX idx_events_run_id ON (run_id)
+    INDEX idx_events_event_id ON (event_id)
+
+
+Key Design Decisions
+---------------------
+
+  Storage:    SQLite via aiosqlite (async, non-blocking)
+  Format:     Two tables (runs + events) with FK link
+  run_id:     Compound key: {symbol}_{timeframe}_{YYYYMMDDTHHMMSS}_{8-char-uuid}
+  NaN:        float('nan') → NULL in SQLite via _safe() helper
+  Bool:       breakout_pending stored as INTEGER (0/1)
+  Timestamps: UTC ISO 8601 format throughout
+  Events:     Full StructureEvent objects embedded in JournalEntry,
+              not just event_ids (cleaner append interface)
+
+
+Momus Issues Addressed
+-----------------------
+
+  1. event_timestamp TEXT column in journal_events
+  2. NaN close → _safe() converts to NULL
+  3. CREATE INDEX idx_events_event_id ON journal_events(event_id)
+
+
+Test Results — 27/27 pass
+---------------------------
+
+  T2 — Entry Tests (8):
+    test_run_id_format                  ✅
+    test_run_id_uniqueness              ✅
+    test_sanitize_symbol                ✅
+    test_entry_construction             ✅
+    test_entry_empty_events             ✅
+    test_entry_none_fields              ✅
+    test_entry_events_list              ✅
+    test_entry_bool_field               ✅
+
+  T3 — Writer Tests (17):
+    test_append_and_flush               ✅
+    test_context_manager                ✅
+    test_tables_created                 ✅
+    test_transactional_append           ✅
+    test_buffer_auto_flush              ✅
+    test_buffer_size_zero               ✅
+    test_double_close_safety            ✅
+    test_multi_flush                    ✅
+    test_nan_close_handling             ✅
+    test_round_trip                     ✅
+    test_bool_none_round_trip           ✅
+    test_event_linking                  ✅
+    test_event_timestamp                ✅
+    test_query_runs_by_symbol           ✅
+    test_query_runs_limit               ✅
+    test_created_at_timestamp           ✅
+    test_event_round_trip               ✅
+
+  T4 — Integration Tests (2):
+    test_full_pipeline_journal_inline   ✅
+    test_full_pipeline_journal_fixture  ✅
+
+
+Regression Tests
+-----------------
+
+  test_market_snapshot.py   81/82 pass (1 pre-existing skip)  ✅
+  unit_tests.py             16/16 pass                        ✅
+
+
+Scope Fidelity
+--------------
+
+  ✅ Zero changes to existing pipeline classes
+  ✅ No scoring/filtering logic in journal.py
+  ✅ Journal is pure consumer — reads pipeline outputs, writes to DB
+  ✅ Idempotent schema (CREATE TABLE IF NOT EXISTS)
+  ✅ aiosqlite added to pyproject.toml
+
+
+Usage
+------
+
+  from journal import JournalEntry, JournalWriter, make_run_id
+  from smartmoneyconcepts.structures import StructureEvent
+  import asyncio, pandas as pd
+
+  async def log_decision(snapshot, confluence, narrative, decision, events):
+      entry = JournalEntry(
+          run_id=make_run_id(snapshot.symbol, snapshot.timeframe, snapshot.timestamp),
+          timestamp=snapshot.timestamp,
+          symbol=snapshot.symbol,
+          timeframe=snapshot.timeframe,
+          close=snapshot.close,
+          direction_score=confluence.direction_score,
+          bias=confluence.bias,
+          confidence=confluence.confidence,
+          narrative_summary=narrative.conclusion,
+          decision_action=decision.action,
+          decision_invalidation=decision.invalidation,
+          decision_target=decision.target,
+          breakout_pending=decision.breakout_pending,
+          events=events,
+      )
+      async with JournalWriter("journal.db") as writer:
+          await writer.append(entry)
+          await writer.flush()
+
+  # Query back
+  async def get_recent(symbol="BTCUSDT"):
+      async with JournalWriter("journal.db") as writer:
+          return await writer.query_runs(symbol=symbol, limit=20)
+
+  asyncio.run(log_decision(...))

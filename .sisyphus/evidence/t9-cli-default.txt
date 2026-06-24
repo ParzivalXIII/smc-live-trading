@@ -1,0 +1,26 @@
+[1;33mThank you for using SmartMoneyConcepts! ⭐ Please show your support by giving a star on the GitHub repository: [4;34mhttps://github.com/joshyattridge/smart-money-concepts[0m
+
+==================================================
+SMC Backtest Replay — Results
+==================================================
+  total_swings: 2415
+  swing_highs: 1207
+  swing_lows: 1208
+  total_bos: 546
+  bullish_bos: 282
+  bearish_bos: 264
+  total_choch: 345
+  total_ob: 61
+  bullish_ob: 27
+  bearish_ob: 34
+  avg_ob_pct: 100.0
+  total_liquidity_zones: 501
+  avg_liq_zone_width_bars: 484.49
+  sweep_rate: 1.0
+  avg_event_delay_bars: 2.12
+  min_event_delay: 1
+  max_event_delay: 13
+  batch_diff_score: 0.0
+  diff_rows: 0
+  processing_time_seconds: 21.41
+==================================================

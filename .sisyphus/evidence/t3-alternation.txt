@@ -1,0 +1,3 @@
+Total non-NaN swings: 2415
+All alternate (no consecutive same-direction): True
+First 20 values: [-1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0]

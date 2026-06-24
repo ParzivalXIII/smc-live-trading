@@ -1,0 +1,20 @@
+T2: BB and MACD columns have non-NaN values
+=============================================
+Command: uv run python -c "
+import pandas as pd
+df = pd.read_csv('data/ohlcv_BTCUSDT_1d_ta.csv')
+print('bb_upper ok:', df['bb_upper'].notna().sum() > 0)
+print('bb_mid ok:', df['bb_mid'].notna().sum() > 0)
+print('bb_lower ok:', df['bb_lower'].notna().sum() > 0)
+print('macd ok:', df['macd'].notna().sum() > 0)
+print('macd_hist ok:', df['macd_hist'].notna().sum() > 0)
+print('macd_signal ok:', df['macd_signal'].notna().sum() > 0)
+"
+
+Result:
+bb_upper ok: True
+bb_mid ok: True
+bb_lower ok: True
+macd ok: True
+macd_hist ok: True
+macd_signal ok: True

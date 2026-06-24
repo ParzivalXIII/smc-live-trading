@@ -1,0 +1,3 @@
+[1;33mThank you for using SmartMoneyConcepts! ⭐ Please show your support by giving a star on the GitHub repository: [4;34mhttps://github.com/joshyattridge/smart-money-concepts[0m
+RUN_ID=BTCUSDT_1h_20260624T120000_10fc2252
+OK

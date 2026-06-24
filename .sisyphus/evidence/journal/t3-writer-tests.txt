@@ -1,0 +1,26 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 27 items / 10 deselected / 17 selected
+
+tests/test_journal.py::TestJournalWriter::test_append_and_flush PASSED   [  5%]
+tests/test_journal.py::TestJournalWriter::test_context_manager_lifecycle PASSED [ 11%]
+tests/test_journal.py::TestJournalWriter::test_flush_creates_tables PASSED [ 17%]
+tests/test_journal.py::TestJournalWriter::test_flush_is_transactional PASSED [ 23%]
+tests/test_journal.py::TestJournalWriter::test_buffer_auto_flush PASSED  [ 29%]
+tests/test_journal.py::TestJournalWriter::test_buffer_size_zero PASSED   [ 35%]
+tests/test_journal.py::TestJournalWriter::test_double_close_safety PASSED [ 41%]
+tests/test_journal.py::TestJournalWriter::test_multiple_flush_rounds PASSED [ 47%]
+tests/test_journal.py::TestJournalWriter::test_nan_close_handling PASSED [ 52%]
+tests/test_journal.py::TestJournalWriter::test_round_trip PASSED         [ 58%]
+tests/test_journal.py::TestJournalWriter::test_round_trip_bool_none PASSED [ 64%]
+tests/test_journal.py::TestJournalWriter::test_event_linking PASSED      [ 70%]
+tests/test_journal.py::TestJournalWriter::test_event_timestamp_column PASSED [ 76%]
+tests/test_journal.py::TestJournalWriter::test_query_runs PASSED         [ 82%]
+tests/test_journal.py::TestJournalWriter::test_query_runs_with_limit PASSED [ 88%]
+tests/test_journal.py::TestJournalWriter::test_created_at_auto_set PASSED [ 94%]
+tests/test_journal.py::TestJournalWriter::test_events_round_trip PASSED  [100%]
+
+====================== 17 passed, 10 deselected in 3.12s =======================
