@@ -1,0 +1,2 @@
+dir_score=10, conf=1.0
+OK

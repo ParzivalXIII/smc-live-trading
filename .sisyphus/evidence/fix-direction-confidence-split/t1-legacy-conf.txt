@@ -1,0 +1,2 @@
+dir_score=20, conf=1.0
+Legacy composite OK

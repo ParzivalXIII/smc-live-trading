@@ -14,26 +14,28 @@ alignment detection and composite scoring.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from market_snapshot import MarketSnapshot
 
 
-@dataclass(slots=True)
+@dataclass
 class ConfluenceResult:
     """Result of scoring a snapshot.
 
     Attributes:
         bias: ``"bullish"``, ``"bearish"``, or ``"neutral"``.
-        score: Raw additive score.
+        direction_score: Raw HTF regime strength score (-4 to 10).
+        confidence: LTF alignment quality multiplier (0.0 to 1.0).
         max_score: Maximum possible score for this context.
         reasons: Human-readable reasons for each scoring condition.
     """
 
     bias: str
-    score: int
-    max_score: int
-    reasons: list[str]
+    direction_score: float
+    confidence: float
+    max_score: int | float = 10
+    reasons: list[str] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -147,7 +149,7 @@ class ConfluenceScorer:
         else:
             bias = "bullish"
 
-        return ConfluenceResult(bias=bias, score=score, max_score=max_score, reasons=reasons)
+        return ConfluenceResult(bias=bias, direction_score=score, confidence=1.0, max_score=max_score, reasons=reasons)
 
 
 # ---------------------------------------------------------------------------
@@ -204,9 +206,10 @@ class MarketContext:
             return "neutral"
         return "mixed"
 
-    def composite_score(self) -> ConfluenceResult:
-        """Score each active timeframe and combine.
+    def legacy_composite_score(self) -> ConfluenceResult:
+        """Score each active timeframe and combine (additive, pre-hierarchical).
 
+        This is the ORIGINAL behavior preserved for backward compatibility.
         Returns a single ``ConfluenceResult`` with:
         - Sum of individual scores
         - ``max_score`` = ``len(active) * 10``
@@ -215,7 +218,7 @@ class MarketContext:
         """
         active = self._active_timeframes()
         if not active:
-            return ConfluenceResult("neutral", 0, 0, ["No data"])
+            return ConfluenceResult("neutral", 0, 1.0, 0, ["No data"])
 
         scorer = ConfluenceScorer()
         total_score = 0
@@ -225,9 +228,9 @@ class MarketContext:
 
         for name, tf in active:
             result = scorer.score(tf)
-            total_score += result.score
+            total_score += result.direction_score
             tf_biases.append(result.bias)
-            reasons.append(f"{name}: {result.bias} (score={result.score})")
+            reasons.append(f"{name}: {result.bias} (score={result.direction_score})")
             reasons.extend(f"  {r}" for r in result.reasons)
 
         # Determine aggregate bias
@@ -243,4 +246,116 @@ class MarketContext:
             # Mixed but with neutral
             bias = "mixed"
 
-        return ConfluenceResult(bias=bias, score=total_score, max_score=max_score, reasons=reasons)
+        return ConfluenceResult(bias=bias, direction_score=total_score, confidence=1.0, max_score=max_score, reasons=reasons)
+
+    @staticmethod
+    def _alignment_factor(htf_bias: str, ltf_bias: str) -> float:
+        """Determine LTF alignment as a confidence multiplier.
+
+        aligned (same bias)              → 1.0  (no reduction)
+        neutral LTF (no opinion)         → 0.7  (30% confidence reduction)
+        conflicting (opposite bias)      → 0.4  (60% confidence reduction)
+
+        Note: When HTF is neutral and LTF is directional, this falls into
+        the 'conflicting' case (0.4) — any directional LTF disagrees with
+        a neutral HTF by definition.
+        """
+        if ltf_bias == htf_bias:
+            return 1.0
+        elif ltf_bias == "neutral":
+            return 0.7
+        return 0.4
+
+    def composite_score(self) -> ConfluenceResult:
+        """Hierarchical MTF: HTF sets bias, LTF modifies confidence multiplicatively.
+
+        HTF regime lock: The highest timeframe's bias is immutable.
+        LTFs only degrade confidence — they cannot flip the bias.
+
+        Confidence multiplier = product of LTF alignment factors.
+        Final score = htf_score * confidence_multiplier.
+        """
+        active = self._active_timeframes()
+        if not active:
+            return ConfluenceResult("neutral", 0.0, 1.0, 0, ["No data available"])
+
+        scorer = ConfluenceScorer()
+
+        # HTF is the highest-priority active timeframe
+        htf_name, htf = active[0]
+        htf_result = scorer.score(htf)
+        base_bias = htf_result.bias
+        htf_score = htf_result.direction_score
+        reasons = [f"HTF ({htf_name}) sets {base_bias} regime"]
+
+        # LTF confidence multiplier (multiplicative, not additive)
+        confidence = 1.0
+        for ltf_name, ltf in active[1:]:
+            ltf_result = scorer.score(ltf)
+            factor = self._alignment_factor(base_bias, ltf_result.bias)
+            confidence *= factor
+            if factor == 1.0:
+                reasons.append(f"LTF ({ltf_name}) aligns")
+            elif factor == 0.7:
+                reasons.append(f"LTF ({ltf_name}) neutral — partial confidence")
+            else:
+                reasons.append(f"LTF ({ltf_name}) conflicts — reduced confidence")
+
+        return ConfluenceResult(
+            bias=base_bias,
+            direction_score=htf_score,
+            confidence=round(confidence, 2),
+            max_score=10,
+            reasons=reasons,
+        )
+
+    @property
+    def regime_alignment(self) -> str | list[str]:
+        """Report alignment of lower TFs with the HTF regime.
+
+        Returns
+        -------
+        str | list[str]
+            ``"aligned"`` — all TFs agree with HTF.
+            ``["h4_conflict", "h1_conflict"]`` — list of conflicting TF names.
+            ``"neutral_if_no_htf"`` — no HTF available.
+
+        Note
+        ----
+        This property detects conflicts (opposite biases) only.
+        Partial alignment (factor=0.7, when LTF is neutral) does NOT count as
+        a conflict — a neutral LTF is simply ignored for conflict detection.
+        """
+        active = self._active_timeframes()
+        if not active:
+            return "neutral_if_no_htf"
+
+        scorer = ConfluenceScorer()
+
+        # Find HTF
+        htf_name: str | None = None
+        htf_snapshot: MarketSnapshot | None = None
+
+        for name, tf in active:
+            if htf_name is None:
+                htf_name = name
+                htf_snapshot = tf
+
+        assert htf_name is not None and htf_snapshot is not None
+
+        htf_bias = scorer.score(htf_snapshot).bias
+
+        if len(active) == 1:
+            return "aligned"
+
+        conflicts: list[str] = []
+        for name, tf in active:
+            if name == htf_name:
+                continue
+            tf_bias = scorer.score(tf).bias
+            if tf_bias != htf_bias and tf_bias != "neutral":
+                conflicts.append(f"{name}_conflict")
+
+        if not conflicts:
+            return "aligned"
+        return conflicts

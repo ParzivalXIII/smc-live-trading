@@ -1,0 +1,2 @@
+action=look_for_longs, conf=1.0
+OK

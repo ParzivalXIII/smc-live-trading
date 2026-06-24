@@ -1,0 +1,7 @@
+    <Module test_market_snapshot.py>
+          python -m pytest tests/test_market_snapshot.py -v --tb=short
+daily: BTC/USDT 1d bias=bullish
+h4 bearish: BTC/USDT 4h bias=bearish
+h4 bullish: BTC/USDT 4h bias=bullish
+h1 neutral: BTC/USDT 1h rsi14=53.0
+✅ All MTF fixtures importable

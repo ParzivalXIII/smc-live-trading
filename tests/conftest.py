@@ -284,3 +284,195 @@ def neutral_snapshot() -> MarketSnapshot:
         bb_width=0.05,
         nearest_liquidity_above=51000.0,
     )
+
+
+# ---------------------------------------------------------------------------
+# Multi-timeframe fixture helpers
+# ---------------------------------------------------------------------------
+
+
+def _make_daily_bullish() -> MarketSnapshot:
+    """Bullish daily snapshot (score=10, like sample_snapshot but distinct timestamp)."""
+    from market_snapshot import MarketSnapshot
+    return MarketSnapshot(
+        symbol="BTC/USDT",
+        timeframe="1d",
+        timestamp=pd.Timestamp("2024-06-01"),
+        close=50000.0,
+        trend_direction="above",
+        ema21=49000.0,
+        ema21_slope=0.01,
+        rsi14=60.0,
+        mfi14=55.0,
+        macd=100.0,
+        macd_signal=90.0,
+        macd_hist=10.0,
+        atr14=500.0,
+        bb_width=0.05,
+        last_bos_direction=1,
+        nearest_liquidity_above=51000.0,
+    )
+
+
+def _make_h4_bearish() -> MarketSnapshot:
+    """Bearish 4h snapshot (score=-4, like bearish_snapshot but timeframe='4h')."""
+    from market_snapshot import MarketSnapshot
+    return MarketSnapshot(
+        symbol="BTC/USDT",
+        timeframe="4h",
+        timestamp=pd.Timestamp("2024-06-01 04:00:00"),
+        close=48000.0,
+        trend_direction="below",
+        ema21=49000.0,
+        ema21_slope=-0.01,
+        rsi14=40.0,
+        mfi14=35.0,
+        macd=50.0,
+        macd_signal=90.0,
+        macd_hist=-5.0,
+        atr14=400.0,
+        bb_width=0.05,
+        last_bos_direction=-1,
+        nearest_liquidity_below=47000.0,
+    )
+
+
+def _make_h4_bullish() -> MarketSnapshot:
+    """Bullish 4h snapshot."""
+    from market_snapshot import MarketSnapshot
+    return MarketSnapshot(
+        symbol="BTC/USDT",
+        timeframe="4h",
+        timestamp=pd.Timestamp("2024-06-01 04:00:00"),
+        close=50200.0,
+        trend_direction="above",
+        ema21=49500.0,
+        ema21_slope=0.008,
+        rsi14=62.0,
+        mfi14=56.0,
+        macd=120.0,
+        macd_signal=100.0,
+        macd_hist=15.0,
+        atr14=400.0,
+        bb_width=0.05,
+        last_bos_direction=1,
+        nearest_liquidity_above=51500.0,
+    )
+
+
+def _make_h1_neutral() -> MarketSnapshot:
+    """Neutral 1h snapshot."""
+    from market_snapshot import MarketSnapshot
+    return MarketSnapshot(
+        symbol="BTC/USDT",
+        timeframe="1h",
+        timestamp=pd.Timestamp("2024-06-01 05:00:00"),
+        close=49800.0,
+        trend_direction="above",
+        ema21=49600.0,
+        ema21_slope=0.002,
+        rsi14=53.0,
+        mfi14=48.0,
+        macd=80.0,
+        macd_signal=82.0,
+        macd_hist=-1.0,
+        atr14=300.0,
+        bb_width=0.04,
+        nearest_liquidity_above=50500.0,
+    )
+
+
+@pytest.fixture(scope="function")
+def daily_bullish_snapshot() -> MarketSnapshot:
+    """Bullish daily snapshot for MTF testing."""
+    return _make_daily_bullish()
+
+
+@pytest.fixture(scope="function")
+def h4_bearish_snapshot() -> MarketSnapshot:
+    """Bearish 4h snapshot for MTF testing."""
+    return _make_h4_bearish()
+
+
+@pytest.fixture(scope="function")
+def h4_bullish_snapshot() -> MarketSnapshot:
+    """Bullish 4h snapshot for MTF testing."""
+    return _make_h4_bullish()
+
+
+@pytest.fixture(scope="function")
+def h1_neutral_snapshot() -> MarketSnapshot:
+    """Neutral 1h snapshot for MTF testing."""
+    return _make_h1_neutral()
+
+
+@pytest.fixture(scope="function")
+def mtx_bullish_daily() -> MarketContext:
+    """All aligned: daily bullish + h4 bullish + h1 neutral."""
+    from confluence import MarketContext
+    return MarketContext(
+        daily=_make_daily_bullish(),
+        h4=_make_h4_bullish(),
+        h1=_make_h1_neutral(),
+    )
+
+
+@pytest.fixture(scope="function")
+def mtx_conflicting_h4() -> MarketContext:
+    """H4 disagrees with daily: daily bullish + h4 bearish."""
+    from confluence import MarketContext
+    return MarketContext(
+        daily=_make_daily_bullish(),
+        h4=_make_h4_bearish(),
+    )
+
+
+@pytest.fixture(scope="function")
+def mtx_conflicting_both() -> MarketContext:
+    """Both LTFs disagree: daily bullish + h4 bearish + h1 neutral."""
+    from confluence import MarketContext
+    return MarketContext(
+        daily=_make_daily_bullish(),
+        h4=_make_h4_bearish(),
+        h1=_make_h1_neutral(),
+    )
+
+
+@pytest.fixture(scope="function")
+def mtx_no_daily() -> MarketContext:
+    """Missing daily: only h4 bullish + h1 neutral."""
+    from confluence import MarketContext
+    return MarketContext(
+        h4=_make_h4_bullish(),
+        h1=_make_h1_neutral(),
+    )
+
+
+@pytest.fixture(scope="function")
+def mtx_no_h1() -> MarketContext:
+    """Missing h1: daily bullish + h4 bullish."""
+    from confluence import MarketContext
+    return MarketContext(
+        daily=_make_daily_bullish(),
+        h4=_make_h4_bullish(),
+    )
+
+
+@pytest.fixture(scope="function")
+def mtx_all_neutral() -> MarketContext:
+    """All three TFs neutral."""
+    from confluence import MarketContext
+    neutral_1d = MarketSnapshot(
+        symbol="BTC/USDT", timeframe="1d", timestamp=pd.Timestamp("2024-06-01"),
+        close=49500.0, trend_direction="above", ema21=49000.0, ema21_slope=-0.005,
+        rsi14=50.0, mfi14=45.0, macd=85.0, macd_signal=90.0, macd_hist=-2.0,
+        atr14=500.0, bb_width=0.05, nearest_liquidity_above=51000.0,
+    )
+    neutral_4h = MarketSnapshot(
+        symbol="BTC/USDT", timeframe="4h", timestamp=pd.Timestamp("2024-06-01 04:00:00"),
+        close=49500.0, trend_direction="at", ema21=49500.0, ema21_slope=0.0,
+        rsi14=52.0, mfi14=48.0, macd=70.0, macd_signal=72.0, macd_hist=-0.5,
+        atr14=400.0, bb_width=0.04,
+    )
+    neutral_1h = _make_h1_neutral()
+    return MarketContext(daily=neutral_1d, h4=neutral_4h, h1=neutral_1h)

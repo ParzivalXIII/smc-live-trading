@@ -343,28 +343,26 @@ class TestConfluenceResult:
 
     def test_construct_minimal(self) -> None:
         """Construct with all required fields."""
-        r = ConfluenceResult("bullish", 7, 10, ["reason1"])
+        r = ConfluenceResult("bullish", 7, 1.0, 10, ["reason1"])
         assert r.bias == "bullish"
-        assert r.score == 7
+        assert r.direction_score == 7
+        assert r.confidence == pytest.approx(1.0)
         assert r.max_score == 10
         assert r.reasons == ["reason1"]
 
     def test_all_attributes(self) -> None:
-        """All 4 attributes accessible."""
-        r = ConfluenceResult("bearish", -2, 10, ["a", "b"])
+        """All attributes accessible."""
+        r = ConfluenceResult("bearish", -2, 1.0, 10, ["a", "b"])
         assert r.bias == "bearish"
-        assert r.score == -2
+        assert r.direction_score == -2
+        assert r.confidence == pytest.approx(1.0)
         assert r.max_score == 10
         assert len(r.reasons) == 2
 
     def test_empty_reasons(self) -> None:
         """Empty reasons list allowed."""
-        r = ConfluenceResult("neutral", 0, 0, [])
+        r = ConfluenceResult("neutral", 0, 1.0, 0, [])
         assert r.reasons == []
-
-    def test_slots(self) -> None:
-        """ConfluenceResult should use slots for performance."""
-        assert hasattr(ConfluenceResult, "__slots__")
 
 
 # =============================================================================
@@ -381,19 +379,19 @@ class TestConfluenceScorer:
         result = scorer.score(sample_snapshot)
         assert isinstance(result, ConfluenceResult)
         assert result.bias in ("bullish", "bearish", "neutral")
-        assert isinstance(result.score, int)
+        assert isinstance(result.direction_score, (int, float))
         assert isinstance(result.reasons, list)
 
     def test_all_bullish_score_10(self, sample_snapshot: MarketSnapshot) -> None:
-        """All bullish conditions → score=10, bias=bullish."""
+        """All bullish conditions → direction_score=10, bias=bullish."""
         scorer = ConfluenceScorer()
         result = scorer.score(sample_snapshot)
-        assert result.score == 10, f"Expected 10, got {result.score}"
+        assert result.direction_score == 10, f"Expected 10, got {result.direction_score}"
         assert result.bias == "bullish"
         assert len(result.reasons) == 8  # every condition has a reason
 
     def test_all_bearish_score_neg4(self, bearish_snapshot: MarketSnapshot) -> None:
-        """All bearish conditions → score=-4, bias=bearish."""
+        """All bearish conditions → direction_score=-4, bias=bearish."""
         scorer = ConfluenceScorer()
         result = scorer.score(bearish_snapshot)
         # close<=ema21 → +0, ema21_slope<=0 → +0, macd<=signal → +0,
@@ -402,7 +400,7 @@ class TestConfluenceScorer:
         # nearest_liquidity_above=None → +0
         # nearest_liquidity_below=47000 → -1
         # Total = -4
-        assert result.score == -4, f"Expected -4, got {result.score}"
+        assert result.direction_score == -4, f"Expected -4, got {result.direction_score}"
         assert result.bias == "bearish"
 
     # --- Isolated condition tests ---
@@ -417,7 +415,7 @@ class TestConfluenceScorer:
             atr14=0.0, bb_width=0.0,
         )
         result = ConfluenceScorer().score(s)
-        assert result.score == 2, f"Expected 2, got {result.score}"
+        assert result.direction_score == 2, f"Expected 2, got {result.direction_score}"
 
     def test_isolated_ema21_slope_positive(self) -> None:
         """Only ema21_slope>0 → score=1."""
@@ -430,7 +428,7 @@ class TestConfluenceScorer:
         )
         result = ConfluenceScorer().score(s)
         # close <= ema21 → +0, ema21_slope>0 → +1, all others +0
-        assert result.score == 1, f"Expected 1, got {result.score}"
+        assert result.direction_score == 1, f"Expected 1, got {result.direction_score}"
 
     def test_isolated_macd_above_signal(self) -> None:
         """Only macd>signal → score=1."""
@@ -442,7 +440,7 @@ class TestConfluenceScorer:
             atr14=0.0, bb_width=0.0,
         )
         result = ConfluenceScorer().score(s)
-        assert result.score == 1, f"Expected 1, got {result.score}"
+        assert result.direction_score == 1, f"Expected 1, got {result.direction_score}"
 
     def test_isolated_rsi_above_55(self) -> None:
         """Only rsi14>55 → score=1."""
@@ -454,7 +452,7 @@ class TestConfluenceScorer:
             atr14=0.0, bb_width=0.0,
         )
         result = ConfluenceScorer().score(s)
-        assert result.score == 1, f"Expected 1, got {result.score}"
+        assert result.direction_score == 1, f"Expected 1, got {result.direction_score}"
 
     def test_isolated_mfi_above_50(self) -> None:
         """Only mfi14>50 → score=1."""
@@ -466,7 +464,7 @@ class TestConfluenceScorer:
             atr14=0.0, bb_width=0.0,
         )
         result = ConfluenceScorer().score(s)
-        assert result.score == 1, f"Expected 1, got {result.score}"
+        assert result.direction_score == 1, f"Expected 1, got {result.direction_score}"
 
     def test_isolated_bullish_bos(self) -> None:
         """Only last_bos_direction=1 → score=3."""
@@ -479,7 +477,7 @@ class TestConfluenceScorer:
             last_bos_direction=1,
         )
         result = ConfluenceScorer().score(s)
-        assert result.score == 3, f"Expected 3, got {result.score}"
+        assert result.direction_score == 3, f"Expected 3, got {result.direction_score}"
 
     def test_isolated_bearish_bos(self) -> None:
         """Only last_bos_direction=-1 → score=-3."""
@@ -492,7 +490,7 @@ class TestConfluenceScorer:
             last_bos_direction=-1,
         )
         result = ConfluenceScorer().score(s)
-        assert result.score == -3, f"Expected -3, got {result.score}"
+        assert result.direction_score == -3, f"Expected -3, got {result.direction_score}"
 
     def test_isolated_liquidity_above(self) -> None:
         """Only nearest_liquidity_above exists → score=1."""
@@ -505,7 +503,7 @@ class TestConfluenceScorer:
             nearest_liquidity_above=100.0,
         )
         result = ConfluenceScorer().score(s)
-        assert result.score == 1, f"Expected 1, got {result.score}"
+        assert result.direction_score == 1, f"Expected 1, got {result.direction_score}"
 
     def test_isolated_liquidity_below(self) -> None:
         """Only nearest_liquidity_below exists → score=-1."""
@@ -518,7 +516,7 @@ class TestConfluenceScorer:
             nearest_liquidity_below=90.0,
         )
         result = ConfluenceScorer().score(s)
-        assert result.score == -1, f"Expected -1, got {result.score}"
+        assert result.direction_score == -1, f"Expected -1, got {result.direction_score}"
 
     # --- Boundary tests ---
 
@@ -562,7 +560,7 @@ class TestConfluenceScorer:
         )
         result = ConfluenceScorer().score(s)
         # All conditions false: score=0 → bearish
-        assert result.score == 0
+        assert result.direction_score == 0
         assert result.bias == "bearish"
 
     def test_boundary_score_4(self) -> None:
@@ -576,7 +574,7 @@ class TestConfluenceScorer:
             atr14=0.0, bb_width=0.0,
         )
         result = ConfluenceScorer().score(s)
-        assert result.score == 4
+        assert result.direction_score == 4
         assert result.bias == "neutral"
 
     def test_boundary_score_7(self) -> None:
@@ -592,7 +590,7 @@ class TestConfluenceScorer:
             nearest_liquidity_above=110.0,
         )
         result = ConfluenceScorer().score(s)
-        assert result.score == 7, f"Expected 7, got {result.score}"
+        assert result.direction_score == 7, f"Expected 7, got {result.direction_score}"
         assert result.bias == "bullish"
 
     def test_none_handling(self) -> None:
@@ -605,7 +603,7 @@ class TestConfluenceScorer:
             atr14=0.0, bb_width=0.0,
         )
         result = ConfluenceScorer().score(s)
-        assert result.score == 0
+        assert result.direction_score == 0
         assert result.bias == "bearish"
         # All Optional conditions should say "+0" or not fire
         for reason in result.reasons:
@@ -637,7 +635,7 @@ class TestConfluenceScorer:
         )
         result = ConfluenceScorer().score(s)
         # close>ema21 (+2) + liq_above (+1) + liq_below (-1) = 2
-        assert result.score == 2, f"Expected 2, got {result.score}"
+        assert result.direction_score == 2, f"Expected 2, got {result.direction_score}"
 
 
 # =============================================================================
@@ -698,46 +696,48 @@ class TestMarketContext:
     def test_composite_score_two_active(
         self, sample_snapshot: MarketSnapshot
     ) -> None:
-        """2 active TFs → max_score=20."""
+        """2 active TFs → max_score=20 (legacy additive)."""
         ctx = MarketContext(daily=sample_snapshot, h4=sample_snapshot, h1=None)
-        result = ctx.composite_score()
+        result = ctx.legacy_composite_score()
         assert result.max_score == 20
         assert result.bias == "bullish"
-        assert result.score == 20
+        assert result.direction_score == 20
+        assert result.confidence == pytest.approx(1.0)
 
     def test_composite_score_three_active(
         self, sample_snapshot: MarketSnapshot
     ) -> None:
-        """3 active TFs → max_score=30."""
+        """3 active TFs → max_score=30 (legacy additive)."""
         ctx = MarketContext(daily=sample_snapshot, h4=sample_snapshot, h1=sample_snapshot)
-        result = ctx.composite_score()
+        result = ctx.legacy_composite_score()
         assert result.max_score == 30
-        assert result.score == 30
+        assert result.direction_score == 30
         assert result.bias == "bullish"
+        assert result.confidence == pytest.approx(1.0)
 
     def test_composite_score_mixed(
         self, sample_snapshot: MarketSnapshot, bearish_snapshot: MarketSnapshot
     ) -> None:
-        """Mixed alignment → composite bias='mixed'."""
+        """Mixed alignment → composite bias='mixed' (legacy additive)."""
         ctx = MarketContext(daily=sample_snapshot, h4=bearish_snapshot, h1=sample_snapshot)
-        result = ctx.composite_score()
+        result = ctx.legacy_composite_score()
         assert result.bias == "mixed"
         assert result.max_score == 30
 
     def test_composite_score_zero_active(self) -> None:
         """No active TFs → score=0, max_score=0, bias='neutral'."""
         ctx = MarketContext()
-        result = ctx.composite_score()
-        assert result.score == 0
+        result = ctx.legacy_composite_score()
+        assert result.direction_score == 0
         assert result.max_score == 0
         assert result.bias == "neutral"
 
     def test_composite_score_reasons_present(
         self, sample_snapshot: MarketSnapshot
     ) -> None:
-        """Composite score includes per-TF reasons."""
+        """Composite score includes per-TF reasons (legacy additive)."""
         ctx = MarketContext(daily=sample_snapshot, h4=sample_snapshot, h1=None)
-        result = ctx.composite_score()
+        result = ctx.legacy_composite_score()
         assert len(result.reasons) > 0
         assert any("daily:" in r for r in result.reasons)
         assert any("h4:" in r for r in result.reasons)
@@ -793,7 +793,7 @@ class TestIntegration:
 
         assert isinstance(result, ConfluenceResult)
         assert result.max_score == 10
-        assert -4 <= result.score <= 10
+        assert -4 <= result.direction_score <= 10
         assert result.bias in ("bullish", "bearish", "neutral")
         assert len(result.reasons) == 8  # 8 conditions, each produces a reason
 
@@ -828,6 +828,86 @@ class TestIntegration:
         alignment = ctx.alignment()
         assert alignment in ("bullish", "bearish", "mixed", "neutral")
 
-        composite = ctx.composite_score()
+        composite = ctx.legacy_composite_score()
         assert composite.max_score == len(available) * 10
         assert composite.bias in ("bullish", "bearish", "mixed", "neutral")
+
+
+# =============================================================================
+# TestHierarchicalMTF
+# =============================================================================
+
+
+class TestHierarchicalMTF:
+    """Tests for the multiplicative confidence model in composite_score()."""
+
+    def test_all_aligned(self, mtx_bullish_daily) -> None:
+        """Daily bullish(10), H4 bullish(10), H1 neutral(4) -> direction_score=10.0, confidence=0.7."""
+        ctx = mtx_bullish_daily
+        result = ctx.composite_score()
+        assert result.bias == "bullish"
+        assert result.direction_score == pytest.approx(10.0, abs=0.01)
+        assert result.confidence == pytest.approx(0.7, abs=0.01)
+        assert result.max_score == 10
+
+    def test_one_conflicting_ltf(self, mtx_conflicting_h4) -> None:
+        """Daily bullish(10), H4 bearish -> direction_score=10.0, confidence=0.4."""
+        ctx = mtx_conflicting_h4
+        result = ctx.composite_score()
+        assert result.bias == "bullish"  # HTF regime lock
+        assert result.direction_score == pytest.approx(10.0, abs=0.01)
+        assert result.confidence == pytest.approx(0.4, abs=0.01)
+
+    def test_both_conflicting(self, mtx_conflicting_both) -> None:
+        """Daily bullish(10), H4 bearish, H1 neutral -> direction_score=10.0, confidence=0.28."""
+        ctx = mtx_conflicting_both
+        result = ctx.composite_score()
+        assert result.bias == "bullish"
+        assert result.direction_score == pytest.approx(10.0, abs=0.01)
+        assert result.confidence == pytest.approx(0.28, abs=0.01)
+
+    def test_no_ltfs_single_tf(self, mtx_no_h1) -> None:
+        """Only daily+H4, no H1 -> direction_score=10.0, confidence=1.0."""
+        ctx = mtx_no_h1
+        result = ctx.composite_score()
+        assert result.bias == "bullish"
+        assert result.direction_score == pytest.approx(10.0, abs=0.01)
+        assert result.confidence == pytest.approx(1.0, abs=0.01)
+
+    def test_no_daily_htf_is_h4(self, mtx_no_daily) -> None:
+        """No daily, H4 is HTF. H4 bullish(10), H1 neutral -> direction_score=10.0, confidence=0.7."""
+        ctx = mtx_no_daily
+        result = ctx.composite_score()
+        assert result.direction_score == pytest.approx(10.0, abs=0.01)
+        assert result.confidence == pytest.approx(0.7, abs=0.01)
+
+    def test_neutral_htf_with_conflicting_ltf(self) -> None:
+        """Neutral HTF (score=5) + bearish H4 -> direction_score=5.0, confidence=0.4, bias neutral."""
+        from confluence import MarketContext
+        from market_snapshot import MarketSnapshot
+        import pandas as pd
+
+        daily = MarketSnapshot(
+            symbol="TEST", timeframe="1d",
+            timestamp=pd.Timestamp("2024-06-01"),
+            close=101.0, trend_direction="above",
+            ema21=100.0, ema21_slope=0.01,
+            rsi14=60.0, mfi14=55.0,
+            macd=0.0, macd_signal=0.0, macd_hist=0.0,
+            atr14=1.0, bb_width=0.01,
+        )
+        h4 = MarketSnapshot(
+            symbol="TEST", timeframe="4h",
+            timestamp=pd.Timestamp("2024-06-01"),
+            close=95.0, trend_direction="below",
+            ema21=100.0, ema21_slope=-0.01,
+            rsi14=35.0, mfi14=30.0,
+            macd=-1.0, macd_signal=0.0, macd_hist=-1.0,
+            atr14=1.5, bb_width=0.02,
+            last_bos_direction=-1,
+        )
+        ctx = MarketContext(daily=daily, h4=h4, h1=None)
+        result = ctx.composite_score()
+        assert result.bias == "neutral"  # HTF neutral — stays neutral
+        assert result.direction_score == pytest.approx(5.0, abs=0.01)
+        assert result.confidence == pytest.approx(0.4, abs=0.01)

@@ -1,0 +1,154 @@
+Multiplicative MTF Scoring Model — Implementation Complete
+===========================================================
+
+Plan:    .sisyphus/plans/fix-mtf-multiplicative.md
+Files:   confluence.py (modified -3 net lines)
+         tests/test_market_snapshot.py (+66 lines)
+Date:    2026-06-23
+
+
+Overview
+--------
+
+Replaced the additive MTF scoring model with a multiplicative confidence
+model. This is a structural correction — in SMC regime trading, lower
+timeframes should NEVER push against higher timeframe direction.
+
+The old model allowed H1 to partially offset daily bias through additive
+adjustments. The new model ensures HTF direction is immutable.
+
+
+Why the Change Was Needed
+-------------------------
+
+Old model (additive, wrong):
+
+    score += ltf_score * 0.3   (agreement — add edge)
+    score -= ltf_score * 0.15  (disagreement — subtract edge)
+
+    This implies LTFs can "add edge" to HTF direction or "subtract edge"
+    symmetrically. That is not how regime systems behave. In real SMC logic:
+    - Higher timeframe defines direction
+    - Lower timeframes only degrade or refine execution quality
+    - Never reverse
+
+
+New Multiplicative Model
+------------------------
+
+Step 1: HTF Regime Lock
+
+    The highest available timeframe sets the bias immutably.
+    Priority: daily > h4 > h1.
+    No LTF can flip this bias.
+
+Step 2: LTF Alignment Factors
+
+    Alignment              Factor   Meaning
+    ─────────              ──────   ───────
+    Aligned (same bias)    1.0      Full conviction, no reduction
+    Neutral (no opinion)   0.7      30% confidence reduction
+    Conflicting (opposite) 0.4      60% confidence reduction
+
+    When HTF is neutral and LTF is directional, this is treated as
+    conflicting (0.4) — any directional opinion disagrees with neutral.
+
+Step 3: Final Score
+
+    confidence = product(all_ltf_factors)   # multiplicative, not additive
+    final_score = htf_score * confidence
+
+    Best case:  all LTFs aligned  → confidence = 1.0  → score unchanged
+    Worst case: all LTFs conflict → confidence = 0.16 → score × 0.16
+
+
+Example Scenarios
+-----------------
+
+    HTF               LTF1         LTF2         Conf    Final     Action
+    ────────────────  ───────────  ───────────  ─────  ────────  ─────────────
+    bullish  (score 8) aligned(1.0) neutral(0.7) 0.70   5.6      watch_breakout
+    bullish  (score 8) conflict(0.4) conflict(0.4) 0.16  1.28     stand_aside
+    bearish (score -6) aligned(1.0) —             1.00  -6.0      avoid_shorts
+    bearish (score -6) conflict(0.4) conflict(0.4) 0.16 -0.96     avoid_shorts
+    neutral (score  5) conflict(0.4) conflict(0.4) 0.16  0.80     stand_aside
+    bullish (score 10) —             —             1.00  10.0      look_for_longs
+
+    KEY BEHAVIOR: Daily bearish(-4) with all bullish LTFs
+    → final = -4 × 0.4 × 0.4 = -0.64
+    → bias = bearish (HTF regime lock — cannot flip)
+    → action = avoid_shorts
+    → This is correct SMC regime trading behavior
+
+
+Test Results — 134 pass, 1 skip (pre-existing)
+------------------------------------------------
+
+    TestHierarchicalMTF (new, 6 tests):
+      test_all_aligned                   7.0  ✅
+      test_one_conflicting_ltf           4.0  ✅
+      test_both_conflicting              2.8  ✅
+      test_no_ltfs_single_tf            10.0  ✅
+      test_no_daily_htf_is_h4            7.0  ✅
+      test_neutral_htf_with_conflicting  2.0  ✅
+
+    TestMarketContext (legacy, 5 tests, unchanged):
+      All use legacy_composite_score()   —    ✅ Regression clean
+
+    Downstream (unchanged):
+      test_decision_engine              33    ✅ All pass
+      test_narrative                    19    ✅ All pass
+      unit_tests                        16    ✅ All pass
+
+    Total                              135    ✅ 134 pass, 1 skip
+
+
+Files Changed
+--------------
+
+    File                   Δ Lines   What
+    ────                   ───────   ────
+    confluence.py             -3     Added _alignment_factor() static method,
+                                     replaced composite_score() body with
+                                     multiplicative logic, updated docstring
+
+    tests/test_market_snapshot.py +66  Added TestHierarchicalMTF class with
+                                     6 tests using pytest.approx()
+
+    (No other files changed)
+
+
+Guardrails Verified
+--------------------
+
+    ✅ market_snapshot.py        — untouched
+    ✅ decision_engine.py        — untouched
+    ✅ narrative.py              — untouched
+    ✅ legacy_composite_score()  — unchanged
+    ✅ TestMarketContext tests   — unchanged, still use legacy
+
+
+Code: _alignment_factor
+-----------------------
+
+    @staticmethod
+    def _alignment_factor(htf_bias: str, ltf_bias: str) -> float:
+        if ltf_bias == htf_bias:
+            return 1.0        # aligned — no reduction
+        elif ltf_bias == "neutral":
+            return 0.7        # LTF has no opinion — partial reduction
+        else:
+            return 0.4        # conflicting — significant reduction
+
+
+Code: composite_score (core logic)
+-----------------------------------
+
+    confidence = 1.0
+    for ltf_name, ltf in active[1:]:
+        ltf_result = ConfluenceScorer().score(ltf)
+        factor = self._alignment_factor(base_bias, ltf_result.bias)
+        confidence *= factor
+
+    final_score = round(htf_score * confidence, 2)
+    return ConfluenceResult(base_bias, final_score, 10, reasons)

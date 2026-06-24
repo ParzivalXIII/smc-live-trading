@@ -1,0 +1,119 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 18 items
+
+tests/test_decision_engine.py::TestDecisionEngine::test_look_for_longs FAILED [  5%]
+tests/test_decision_engine.py::TestDecisionEngine::test_avoid_shorts FAILED [ 11%]
+tests/test_decision_engine.py::TestDecisionEngine::test_stand_aside FAILED [ 16%]
+tests/test_decision_engine.py::TestDecisionEngine::test_watch_breakout_modifier FAILED [ 22%]
+tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_liquidity_first FAILED [ 27%]
+tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_swing_fallback FAILED [ 33%]
+tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_ema_fallback FAILED [ 38%]
+tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_no_fallback FAILED [ 44%]
+tests/test_decision_engine.py::TestDecisionEngine::test_target_bullish FAILED [ 50%]
+tests/test_decision_engine.py::TestDecisionEngine::test_target_bearish FAILED [ 55%]
+tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[10-1.0] FAILED [ 61%]
+tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[7-0.7] FAILED [ 66%]
+tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[4-0.4] FAILED [ 72%]
+tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[0-0.0] FAILED [ 77%]
+tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[-4-0.4] FAILED [ 83%]
+tests/test_decision_engine.py::TestDecisionEngine::test_neutral_invalidation_target_none FAILED [ 88%]
+tests/test_decision_engine.py::TestDecisionEngine::test_with_market_context FAILED [ 94%]
+tests/test_decision_engine.py::TestDecisionEngine::test_without_market_context FAILED [100%]
+
+=================================== FAILURES ===================================
+____________________ TestDecisionEngine.test_look_for_longs ____________________
+tests/test_decision_engine.py:34: in test_look_for_longs
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+_____________________ TestDecisionEngine.test_avoid_shorts _____________________
+tests/test_decision_engine.py:48: in test_avoid_shorts
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+_____________________ TestDecisionEngine.test_stand_aside ______________________
+tests/test_decision_engine.py:62: in test_stand_aside
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+_______________ TestDecisionEngine.test_watch_breakout_modifier ________________
+tests/test_decision_engine.py:73: in test_watch_breakout_modifier
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+_________ TestDecisionEngine.test_invalidation_bullish_liquidity_first _________
+tests/test_decision_engine.py:107: in test_invalidation_bullish_liquidity_first
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+_________ TestDecisionEngine.test_invalidation_bullish_swing_fallback __________
+tests/test_decision_engine.py:134: in test_invalidation_bullish_swing_fallback
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+__________ TestDecisionEngine.test_invalidation_bullish_ema_fallback ___________
+tests/test_decision_engine.py:163: in test_invalidation_bullish_ema_fallback
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+___________ TestDecisionEngine.test_invalidation_bullish_no_fallback ___________
+tests/test_decision_engine.py:192: in test_invalidation_bullish_no_fallback
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+____________________ TestDecisionEngine.test_target_bullish ____________________
+tests/test_decision_engine.py:225: in test_target_bullish
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+____________________ TestDecisionEngine.test_target_bearish ____________________
+tests/test_decision_engine.py:236: in test_target_bearish
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+______________ TestDecisionEngine.test_confidence_formula[10-1.0] ______________
+tests/test_decision_engine.py:274: in test_confidence_formula
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+______________ TestDecisionEngine.test_confidence_formula[7-0.7] _______________
+tests/test_decision_engine.py:274: in test_confidence_formula
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+______________ TestDecisionEngine.test_confidence_formula[4-0.4] _______________
+tests/test_decision_engine.py:274: in test_confidence_formula
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+______________ TestDecisionEngine.test_confidence_formula[0-0.0] _______________
+tests/test_decision_engine.py:274: in test_confidence_formula
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+______________ TestDecisionEngine.test_confidence_formula[-4-0.4] ______________
+tests/test_decision_engine.py:274: in test_confidence_formula
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+___________ TestDecisionEngine.test_neutral_invalidation_target_none ___________
+tests/test_decision_engine.py:295: in test_neutral_invalidation_target_none
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+_________________ TestDecisionEngine.test_with_market_context __________________
+tests/test_decision_engine.py:308: in test_with_market_context
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+________________ TestDecisionEngine.test_without_market_context ________________
+tests/test_decision_engine.py:339: in test_without_market_context
+    from decision_engine import DecisionEngine
+E   ModuleNotFoundError: No module named 'decision_engine'
+=========================== short test summary info ============================
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_look_for_longs - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_avoid_shorts - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_stand_aside - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_watch_breakout_modifier - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_liquidity_first - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_swing_fallback - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_ema_fallback - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_no_fallback - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_target_bullish - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_target_bearish - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[10-1.0] - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[7-0.7] - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[4-0.4] - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[0-0.0] - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[-4-0.4] - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_neutral_invalidation_target_none - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_with_market_context - ModuleNotFoundError: No module named 'decision_engine'
+FAILED tests/test_decision_engine.py::TestDecisionEngine::test_without_market_context - ModuleNotFoundError: No module named 'decision_engine'
+============================== 18 failed in 1.28s ==============================

@@ -1,0 +1,2 @@
+6
+Found 6 pytest.approx() calls in TestHierarchicalMTF

@@ -1,0 +1,2 @@
+action=stand_aside, conf=0.16
+OK
