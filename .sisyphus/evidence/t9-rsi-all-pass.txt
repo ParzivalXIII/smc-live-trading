@@ -1,0 +1,20 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 94 items / 83 deselected / 11 selected
+
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[29.9-oversold] PASSED [  9%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[30.0-bearish] PASSED [ 18%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[39.9-bearish] PASSED [ 27%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[40.0-neutral-bearish] PASSED [ 36%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[49.9-neutral-bearish] PASSED [ 45%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[50.0-neutral-bullish] PASSED [ 54%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[59.9-neutral-bullish] PASSED [ 63%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[60.0-bullish] PASSED [ 72%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[69.9-bullish] PASSED [ 81%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_zone[70.0-overbought] PASSED [ 90%]
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_nan PASSED        [100%]
+
+====================== 11 passed, 83 deselected in 0.78s =======================

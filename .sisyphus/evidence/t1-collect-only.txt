@@ -1,0 +1,40 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collected 23 items
+
+<Dir smc-live-trading>
+  <Dir tests>
+    <Module test_causality.py>
+      <Function test_causality_batch_vs_streaming>
+      <Function test_per_bar_truncation>
+      <Function test_pytest>
+    <Module test_streaming_vs_batch.py>
+      <Function test_streaming_vs_batch>
+    <Module test_structure_engine.py>
+      <Class TestPatternDetection>
+        <Function test_bullish_bos_pattern>
+        <Function test_bearish_bos_pattern>
+        <Function test_bullish_choch_pattern>
+        <Function test_bearish_choch_pattern>
+      <Class TestEdgeCases>
+        <Function test_non_pattern_wrong_level_ordering>
+        <Function test_less_than_4_swings>
+        <Function test_dedup_same_s1_index>
+        <Function test_bos_and_choch_on_same_swings>
+      <Class TestStatusTransitions>
+        <Function test_provisional_to_confirmed_bullish>
+        <Function test_provisional_to_confirmed_bearish>
+        <Function test_provisional_to_cancelled>
+        <Function test_provisional_still_pending>
+        <Function test_confirmation_at_boundary>
+        <Function test_expiry_at_boundary_no_break>
+        <Function test_multiple_provisional_mixed_outcomes>
+        <Function test_pending_then_confirmed>
+      <Class TestLifecycle>
+        <Function test_mixed_patterns>
+        <Function test_events_property_returns_copy>
+        <Function test_all_properties>
+
+========================= 23 tests collected in 0.91s ==========================

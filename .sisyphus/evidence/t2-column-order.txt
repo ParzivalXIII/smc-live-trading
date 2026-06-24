@@ -1,0 +1,11 @@
+T2: Column order verification for pandas_ta BB and MACD
+=========================================================
+Command: uv run python -c "import pandas_ta as ta; import pandas as pd; import numpy as np; close = pd.Series(np.random.randn(100).cumsum() + 50000); bb = ta.bbands(close, length=20, std=2); print('BB columns:', list(bb.columns)); macd = ta.macd(close); print('MACD columns:', list(macd.columns))"
+
+Result:
+BB columns: ['BBL_20_2.0_2.0', 'BBM_20_2.0_2.0', 'BBU_20_2.0_2.0', 'BBB_20_2.0_2.0', 'BBP_20_2.0_2.0']
+MACD columns: ['MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9']
+
+Confirmation:
+  BB:  iloc[:,0]=BBL (lower) ✓  iloc[:,1]=BBM (mid) ✓  iloc[:,2]=BBU (upper) ✓
+  MACD: iloc[:,0]=MACD ✓  iloc[:,1]=MACDh (hist) ✓  iloc[:,2]=MACDs (signal) ✓

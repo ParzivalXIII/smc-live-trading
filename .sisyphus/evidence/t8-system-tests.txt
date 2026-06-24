@@ -1,0 +1,18 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 9 items
+
+tests/test_analyze_ta_system.py::TestPrintTimeframeBlock::test_normal_dataframe PASSED [ 11%]
+tests/test_analyze_ta_system.py::TestPrintTimeframeBlock::test_all_nan_dataframe PASSED [ 22%]
+tests/test_analyze_ta_system.py::TestAnalyzeTimeframe::test_normal PASSED [ 33%]
+tests/test_analyze_ta_system.py::TestAnalyzeTimeframe::test_missing_input_csv PASSED [ 44%]
+tests/test_analyze_ta_system.py::TestAnalyzeTimeframe::test_output_csv_has_correct_columns PASSED [ 55%]
+tests/test_analyze_ta_system.py::TestParseArgs::test_default_timeframes PASSED [ 66%]
+tests/test_analyze_ta_system.py::TestParseArgs::test_single_timeframe PASSED [ 77%]
+tests/test_analyze_ta_system.py::TestParseArgs::test_custom_data_dir PASSED [ 88%]
+tests/test_analyze_ta_system.py::TestParseArgs::test_no_symbol PASSED    [100%]
+
+============================== 9 passed in 1.69s ===============================

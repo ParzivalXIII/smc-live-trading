@@ -1,0 +1,1 @@
+PASS: header-only CSV returns None

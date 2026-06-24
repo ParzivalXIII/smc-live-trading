@@ -1,0 +1,5 @@
+T2 constant_price_df: shape=(100, 6), all close=100.0, high=101.0, low=99.0, volume=1000.0 — OK
+T2 linear_trend_df: shape=(100, 6), close[0]=100.0, close[-1]=200.0 — OK
+T2 step_function_df: shape=(100, 6), first 50 close=100.0, last 50 close=110.0 — OK
+T2 sinusoidal_df: shape=(100, 6), close[0]=100.00, close[25]=110.00 — OK
+T2: All 4 fixtures deterministic — OK

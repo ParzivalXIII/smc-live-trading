@@ -1,0 +1,16 @@
+=== Analyze TA Tests (144 tests) ===
+tests/test_analyze_ta_units.py: 94 passed
+tests/test_analyze_ta_io.py: 26 passed (+1 new: test_header_only_csv)
+tests/test_analyze_ta_core.py: 15 passed (+1 new: test_compute_indicators_insufficient_rows)
+tests/test_analyze_ta_system.py: 9 passed
+Total: 144 passed
+
+=== Pre-existing SMC Tests (39 tests) ===
+tests/unit_tests.py: 16 passed
+tests/test_causality.py: 3 passed
+tests/test_structure_engine.py: 19 passed
+tests/test_streaming_vs_batch.py: 1 passed
+Total: 39 passed
+
+=== Combined ===
+Grand total: 183 passed (0 failures, 0 errors)

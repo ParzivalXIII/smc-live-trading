@@ -3,11 +3,25 @@ name = "smc-live-trading"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "backtesting>=0.6.5",
-    "numba>=0.65.1",
-    "numpy>=2.4.6",
+    "numpy>=2.2.6",
     "pandas>=3.0.3",
+    "pandas-ta>=0.4.71b0",
+    "python-dotenv>=1.2.2",
     "python-statemachine>=3.2.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+filterwarnings = ["ignore::DeprecationWarning"]
+addopts = "-v --tb=short"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
 ]

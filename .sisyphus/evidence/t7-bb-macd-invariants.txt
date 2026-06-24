@@ -1,0 +1,6 @@
+BB ordering invariant (upper >= mid >= lower): PASS
+  Valid BB rows: 81
+MACD identity invariant (hist == macd - signal): PASS
+  Valid MACD rows: 67
+  Max deviation: 0.0
+All 23 columns present: PASS

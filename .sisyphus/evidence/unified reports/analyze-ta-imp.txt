@@ -1,0 +1,173 @@
+analyze_ta.py — Fix + Test Suite Implementation Report
+========================================================
+
+Script:  trade_scripts/analyze_ta.py (619 lines)
+Plan:    .sisyphus/plans/fix-analyze-ta.md
+         .sisyphus/plans/test-analyze-ta.md
+Date:    2026-06-23
+
+
+PART 1: FIXES APPLIED
+-----------------------
+
+BB Column Names — Positional Access
+  Before: df["bb_upper"] = bb_df["BBU_20_2.0_2.0"]
+          Fragile — breaks if pandas-ta changes default ddof parameter.
+  After:  df["bb_upper"] = bb_df.iloc[:, 2]
+          df["bb_mid"]   = bb_df.iloc[:, 1]
+          df["bb_lower"] = bb_df.iloc[:, 0]
+  Verified: pandas_ta output order is [BBL(0), BBM(1), BBU(2), BBB(3), BBP(4)].
+            iloc[:,2]=upper, iloc[:,1]=mid, iloc[:,0]=lower — CORRECT.
+
+MACD Column Names — Positional Access
+  Before: df["macd"] = macd_df["MACD_12_26_9"]
+          df["macd_signal"] = macd_df["MACDs_12_26_9"]
+          df["macd_hist"] = macd_df["MACDh_12_26_9"]
+  After:  df["macd"]        = macd_df.iloc[:, 0]
+          df["macd_hist"]   = macd_df.iloc[:, 1]
+          df["macd_signal"] = macd_df.iloc[:, 2]
+  Verified: pandas_ta output order is [MACD(0), MACDh(1), MACDs(2)].
+            iloc[:,0]=line, iloc[:,1]=hist, iloc[:,2]=signal — CORRECT.
+
+Timestamp Sort + Dedup
+  Added to load_csv():
+    df = df.sort_values("timestamp").drop_duplicates(subset=["timestamp"], keep="last")
+    df = df.reset_index(drop=True)
+  Ensures all indicator computations receive time-ordered, deduplicated data.
+
+Atomic Write Protection
+  save_enriched_csv() rewritten to use tempfile.mkstemp() + shutil.move():
+    fd, tmp_path = tempfile.mkstemp(dir=out_path.parent, suffix=".tmp")
+    try: write → shutil.move(tmp_path, out_path)
+    except: os.close(fd); os.unlink(tmp_path); raise
+  Prevents load_ta_latest() from reading partially written files.
+  Verified with 2-thread concurrent write test — output is always valid.
+
+Package Init
+  trade_scripts/__init__.py created (empty) — enables from trade_scripts import...
+
+
+PART 2: LATENT BUG FIXED
+--------------------------
+
+rsi_label(NaN) — returns "overbought" (was incorrect)
+  Root cause: float("nan") < 30 evaluates to False in Python, so NaN RSI
+  falls through all zone checks to the final else: "overbought".
+  Fix: Added math.isnan(rsi) guard returning "insufficient data".
+  Test: 11 parametrized RSI cases including NaN boundary.
+
+
+PART 3: TEST SUITE — 142 TESTS
+----------------------------------
+
+  test_analyze_ta_units.py   —  94 unit tests (pure functions)
+    NormalizeSymbol           4  BTC/USDT → BTCUSDT, ETH/BTC → ETHBTC
+    LastValid                 6  last non-NaN, all NaN, empty series
+    EmaSignal                 5  above, below, at, NaN
+    MacdSignalLabel          11  bullish/bearish cross, widening, converging,
+                                  NaN, insufficient data, sparse valid indices
+    RsiLabel                 11  all 6 zones + NaN (post-fix)
+    MfiSignal                11  same zones as RSI
+    ObvSignal                 7  uptrend, downtrend, neutral, threshold,
+                                  insufficient data
+    BbLabel                  14  near upper/lower, mid-range, upper/lower half,
+                                  squeeze, expansion, NaN
+    MacdCross                 9  bullish/bearish cross, no cross, NaN, partial NaN
+    ObvSlope                  9  rising(1.0), falling(-1.0), flat(0.0),
+                                  insufficient data, NaN
+    PriceVsBb                 7  above_upper, below_lower, inside, NaN
+
+  test_analyze_ta_io.py     —  25 integration tests (I/O functions)
+    LoadCsv                  6  normal, unsorted, duplicates, missing, empty
+    LoadTaLatest             10  valid, missing, malformed, partial data
+    LoadTaSeries              6  valid tail, missing, empty, different tails
+    SaveEnrichedCsv           3  basic write, file exists, round-trip
+
+  test_analyze_ta_core.py   —  14 integration tests (engine)
+    ComputeIndicators         7  23 columns, BB ordering, MACD identity,
+                                  constant price, NaN handling
+    SaveEnrichedCsv           7  columns, concurrent write, no orphans,
+                                  atomic integrity, error recovery
+
+  test_analyze_ta_system.py  —   9 system tests (pipeline)
+    PrintTimeframeBlock       2  normal output format, all-NaN handling
+    AnalyzeTimeframe          3  synthetic run, missing file, output shape
+    ParseArgs                 4  symbol required, optional timeframe,
+                                  default data-dir
+
+
+INVARIANTS VERIFIED
+--------------------
+
+  BB ordering:            bb_upper >= bb_mid >= bb_lower on ALL valid rows
+  MACD identity:          macd_hist ≈ macd - macd_signal (rtol=1e-10, atol=1e-15)
+  Output columns:         23 columns present, 0 missing, 0 extra
+  Constant price:         BB_mid ≈ 100.0, MACD ≈ 0.0, OBV = 0.0, BB_width ≈ 0.0
+  Concurrent write:       2-thread race produces valid CSV parseable by load_csv()
+  Orphan .tmp files:      Zero orphan files after normal or failed writes
+
+
+TEST RESULTS
+-------------
+
+  python -m pytest tests/test_analyze_ta_units.py   94/94  PASS
+  python -m pytest tests/test_analyze_ta_io.py      25/25  PASS
+  python -m pytest tests/test_analyze_ta_core.py    14/14  PASS
+  python -m pytest tests/test_analyze_ta_system.py   9/9   PASS
+                                                    ─────
+  Total                                            142/142 PASS
+
+  Pre-existing SMC tests:
+    tests/unit_tests.py                             16/16  PASS
+    tests/test_causality.py                          3/3   PASS
+    tests/test_structure_engine.py                  19/19  PASS
+    tests/test_streaming_vs_batch.py                 1/1   PASS
+                                                    ─────
+  Grand total                                      181/181 PASS
+
+
+FILES CHANGED
+--------------
+
+  trade_scripts/__init__.py             Created — 1 line
+  trade_scripts/analyze_ta.py           Modified — +14 lines net
+  pyproject.toml                        Modified — +5 lines (pytest config)
+  tests/conftest.py                     Created — 5 fixtures
+  tests/test_analyze_ta_units.py        Created — 94 tests
+  tests/test_analyze_ta_io.py           Created — 25 tests
+  tests/test_analyze_ta_core.py         Created — 14 tests
+  tests/test_analyze_ta_system.py       Created — 9 tests
+
+
+DEPENDENCY CHANGES
+-------------------
+
+  pandas-ta>=0.4.71b0     Added to pyproject.toml
+  python-dotenv>=1.2.2    Added to pyproject.toml
+  pytest                  Already in [dependency-groups.dev] — no change needed
+  numba                   Removed from pyproject.toml (unused)
+
+
+DESIGN DECISIONS
+-----------------
+
+  Decision                  Choice
+  ──────────                ─────
+  BB column access          Positional (iloc[:, 2/1/0]), not parameter-encoded
+  MACD column access        Positional (iloc[:, 0/1/2]), not parameter-encoded
+  Timestamp ordering        Sort + dedup in load_csv()
+  Write integrity           Atomic rename via tempfile + shutil.move
+  Error cleanup             os.close(fd) + os.unlink(tmp_path) on failure
+  Synthetic test data       4 fixtures (constant, linear, step, sinusoidal)
+  Test files                4 files (unit/io/core/system), not 1 monolithic file
+  Fixture scope             function (each test gets fresh copy)
+  MACD identity tolerance   Relative: np.isclose(rtol=1e-10, atol=1e-15)
+
+
+KNOWN PRODUCTION CODE LIMITATIONS (documented, not fixed)
+-----------------------------------------------------------
+
+  compute_indicators(<26 rows)  → AttributeError (pandas-ta macd returns None)
+  load_ta_latest(empty CSV)     → IndexError (df.iloc[-1] on empty)
+  load_ta_series(empty CSV)     → Returns empty DataFrame, not None
+  ema_signal(1, 0)             → ZeroDivisionError (not NaN-guarded)
