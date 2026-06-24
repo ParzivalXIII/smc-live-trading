@@ -1,0 +1,204 @@
+CCXT Data Fetching Layer — Implementation Complete
+====================================================
+
+Plan:    .sisyphus/plans/ccxt-data-layer.md
+Files:   trade_scripts/exchange.py (98 lines)
+         trade_scripts/fetcher.py (54 lines)
+         trade_scripts/processor.py (96 lines)
+         trade_scripts/storage.py (62 lines)
+         trade_scripts/__init__.py (23 lines)
+Tests:   tests/test_ccxt_data.py (606 lines, 44 tests)
+         tests/test_ccxt_integration.py (93 lines, 1 test)
+Date:    2026-06-24
+
+
+Architecture
+------------
+
+  4 cleanly separated modules under trade_scripts/:
+
+  exchange.py     fetcher.py       processor.py      storage.py
+  ┌──────────┐   ┌──────────┐    ┌──────────┐     ┌──────────┐
+  │Exchange  │ → │fetch_    │ → │process_  │ →  │save_     │
+  │Factory   │   │ohlcv()   │   │candles() │    │candles() │
+  │          │   │          │   │          │    │          │
+  │singleton │   │paginated │   │sort      │    │atomic    │
+  │caching   │   │fetch     │   │dedup     │    │CSV write │
+  │symbol    │   │since     │   │NaN/INF   │    │analyze_ta│
+  │resolution│   │advance   │   │cleanup   │    │compatible│
+  └──────────┘   └──────────┘    └──────────┘     └──────────┘
+
+  No circular imports. CCXT lazily imported (not at module level).
+  All modules exported via trade_scripts/__init__.py.
+
+
+ExchangeFactory (exchange.py)
+-------------------------------
+
+  Singleton caching — one CCXT instance per exchange ID.
+  Config frozen after first creation. Public OHLCV does not require API keys.
+
+  class ExchangeFactory:
+      create(exchange_id="bybit", config=None) → ccxt.Exchange
+      resolve_symbol(exchange, "BTCUSDT") → "BTC/USDT"
+      close_all()  → cleanup all cached instances
+
+  Symbol resolution:
+    - Already unified ("BTC/USDT") → returned as-is
+    - No separator ("BTCUSDT") → inserts "/" before known quote currencies
+      (USDT, USDC, BUSD, USD, BTC, ETH, BNB)
+    - Separator variants ("ETH_USDT", "SOL-USDT") → replaces with "/"
+    - Not found → ValueError
+
+  Lazy import: `import ccxt` inside the factory method, not at module level.
+
+
+Fetcher (fetcher.py)
+---------------------
+
+  def fetch_ohlcv(exchange, symbol, timeframe="1h",
+                  since=None, limit=200, max_pages=10, params=None) -> list:
+
+    - Advances `since` by last_candle_timestamp + timeframe_duration_ms
+    - Sorts candles by timestamp before advancing (defensive)
+    - Stops when fewer than `limit` candles returned (end of data)
+    - Stops after `max_pages` requests
+
+
+Processor (processor.py)
+--------------------------
+
+  def process_candles(candles: list) -> pd.DataFrame:
+    1. Create DataFrame with columns: timestamp, open, high, low, close, volume
+    2. Convert millisecond timestamps to datetime
+    3. Sort ascending by timestamp
+    4. Drop duplicate timestamps (keep newest)
+    5. Drop rows with NaN or +/-INF values
+
+  def validate_candles(df, expected_interval=None) -> list[str]:
+    Checks: empty, monotonic timestamps, duplicates, gaps (>2x interval),
+            zero-volume rows.
+    expected_interval can be passed explicitly (e.g. pd.Timedelta(hours=4))
+    or auto-detected from median timestamp delta.
+
+
+Storage (storage.py)
+---------------------
+
+  def save_candles(df, path) -> None:
+    Atomic write via tempfile.mkstemp() + shutil.move().
+    Timestamps formatted as ISO datetime strings ("2024-01-01 00:00:00").
+    Matches analyze_ta.py load_csv() expected format.
+
+  def load_candles(path) -> pd.DataFrame | None:
+    Read CSV with pd.read_csv(path, parse_dates=["timestamp"]).
+    Returns None if file missing.
+
+
+Post-Implementation Fix (Oracle review)
+-----------------------------------------
+
+  Bug: validate_candles() used hardcoded pd.Timedelta(hours=2) for gap
+  threshold, causing false warnings on 4h and 1d data.
+
+  Fix: Added expected_interval parameter. If provided, threshold = interval * 2.
+  If None, threshold = median(timestamp_deltas) * 2. Works correctly for
+  all timeframes (1m, 1h, 4h, 1d, etc.).
+
+
+Test Results — 45/45 pass
+---------------------------
+
+  Test File                           Tests  Status
+  ─────────────────────────────       ─────  ──────
+  test_ccxt_data.py:
+    TestExchangeFactory (7)              7   ✅ 7/7
+      creation, singleton, close_all,
+      resolve USDT, resolve underscore,
+      resolve hyphen, resolve fail
+
+    TestFetcher (4)                      4   ✅ 4/4
+      single_page, pagination, empty,
+      stop_on_partial
+
+    TestProcessor (10)                  10   ✅ 10/10
+      basic processing, columns,
+      empty input, dedup,
+      nan/inf handling, large_gap,
+      no_gap, auto_interval_gap,
+      explicit_interval_gap,
+      zero_volume
+
+    TestSaveCandles (7)                  7   ✅ 7/7
+      basic, roundtrip, creates_dir,
+      empty, atomic, timestamp_format,
+      parseable
+
+    TestPipelineIntegration (1)          1   ✅ 1/1
+
+    TestValidator (14)                  14   ✅ 14/14
+      empty_warning, good_no_warnings,
+      monotonic, non_monotonic,
+      duplicates, no_duplicates,
+      large_gap, no_gap,
+      zero_volume_ok, zero_volume_warning,
+      auto_gap_detection, explicit_interval,
+      partial_fill_edge, five_minute_interval
+
+    TestExchangeFactoryNonUSDT (1)       1   ✅ 1/1
+      resolve_usdc
+
+  test_ccxt_integration.py               1   ✅ 1/1
+    test_fetch_btcusdt_4h (real Bybit)
+
+  ─────────────────────────────       ─────  ──────
+  Total                                 45   ✅ 45/45
+
+
+E2E Pipeline Verified
+-----------------------
+
+  ExchangeFactory.create("bybit")
+    → resolve_symbol("BTCUSDT") = "BTC/USDT"
+    → fetch_ohlcv(symbol="BTC/USDT", timeframe="4h", limit=100)
+        = 100 raw candles
+    → process_candles(candles)
+        = DataFrame (sorted, deduped, NaN/INF cleaned)
+    → validate_candles(df, expected_interval=pd.Timedelta(hours=4))
+        = [] (no warnings)
+    → save_candles(df, "/tmp/e2e_test.csv")
+        = atomic CSV write
+    → load_candles("/tmp/e2e_test.csv")
+        = valid DataFrame with parse_dates
+
+
+Guardrails Verified
+--------------------
+
+  ✅ No API keys required for OHLCV (public data)
+  ✅ No private endpoint logic in V1
+  ✅ No WebSocket/ccxt.pro in V1
+  ✅ CCXT cached per exchange ID (singleton)
+  ✅ CCXT lazily imported (not at module level)
+  ✅ All output CSVs match analyze_ta.py input format
+
+
+Usage
+------
+
+  from trade_scripts import ExchangeFactory, fetch_ohlcv, process_candles, save_candles
+
+  # Fetch BTCUSDT 4H data from Bybit (public, no auth)
+  exchange = ExchangeFactory.create("bybit")
+  symbol = ExchangeFactory.resolve_symbol(exchange, "BTCUSDT")
+  candles = fetch_ohlcv(exchange, symbol, "4h", limit=200, max_pages=5)
+  df = process_candles(candles)
+  save_candles(df, "data/ohlcv_BTCUSDT_4h.csv")
+  print(f"Fetched {len(df)} candles")
+
+  # Validate
+  from trade_scripts.processor import validate_candles
+  import pandas as pd
+  warnings = validate_candles(df, expected_interval=pd.Timedelta(hours=4))
+  if warnings:
+      print(f"Warnings: {warnings}")

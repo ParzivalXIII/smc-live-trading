@@ -1,0 +1,5 @@
+E2E OK: 100 candles
+Columns: ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+Rows: 100
+Timestamp dtype: datetime64[us]
+analyze_ta.py load_csv pattern works: ['timestamp', 'open', 'high', 'low', 'close', 'volume']

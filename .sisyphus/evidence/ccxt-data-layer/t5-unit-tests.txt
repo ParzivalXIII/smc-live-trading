@@ -1,0 +1,53 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 44 items
+
+tests/test_ccxt_data.py::TestExchangeFactoryCreate::test_create_returns_instance PASSED [  2%]
+tests/test_ccxt_data.py::TestExchangeFactoryCreate::test_create_singleton_same_id PASSED [  4%]
+tests/test_ccxt_data.py::TestExchangeFactoryCreate::test_create_different_exchanges PASSED [  6%]
+tests/test_ccxt_data.py::TestExchangeFactoryCreate::test_create_no_auth PASSED [  9%]
+tests/test_ccxt_data.py::TestExchangeFactoryCreate::test_create_with_auth PASSED [ 11%]
+tests/test_ccxt_data.py::TestExchangeFactoryCreate::test_markets_loaded_after_create PASSED [ 13%]
+tests/test_ccxt_data.py::TestExchangeFactoryResolveSymbol::test_resolve_already_unified PASSED [ 15%]
+tests/test_ccxt_data.py::TestExchangeFactoryResolveSymbol::test_resolve_raw_with_usdt PASSED [ 18%]
+tests/test_ccxt_data.py::TestExchangeFactoryResolveSymbol::test_resolve_with_underscore PASSED [ 20%]
+tests/test_ccxt_data.py::TestExchangeFactoryResolveSymbol::test_resolve_with_dash PASSED [ 22%]
+tests/test_ccxt_data.py::TestExchangeFactoryResolveSymbol::test_resolve_invalid_raises PASSED [ 25%]
+tests/test_ccxt_data.py::TestExchangeFactoryResolveSymbol::test_resolve_empty_markets PASSED [ 27%]
+tests/test_ccxt_data.py::TestExchangeFactoryCloseAll::test_close_all_clears_instances PASSED [ 29%]
+tests/test_ccxt_data.py::TestExchangeFactoryCloseAll::test_close_all_calls_close PASSED [ 31%]
+tests/test_ccxt_data.py::TestExchangeFactoryCloseAll::test_close_all_handles_close_error PASSED [ 34%]
+tests/test_ccxt_data.py::TestFetchSinglePage::test_single_page_returns_candles PASSED [ 36%]
+tests/test_ccxt_data.py::TestFetchSinglePage::test_single_page_empty PASSED [ 38%]
+tests/test_ccxt_data.py::TestFetchSinglePage::test_single_page_partial PASSED [ 40%]
+tests/test_ccxt_data.py::TestFetchPagination::test_pagination_two_pages PASSED [ 43%]
+tests/test_ccxt_data.py::TestFetchPagination::test_pagination_max_pages_cap PASSED [ 45%]
+tests/test_ccxt_data.py::TestFetchPagination::test_pagination_empty_second_page PASSED [ 47%]
+tests/test_ccxt_data.py::TestFetchPagination::test_pagination_since_advancement PASSED [ 50%]
+tests/test_ccxt_data.py::TestFetchPagination::test_pagination_passes_params PASSED [ 52%]
+tests/test_ccxt_data.py::TestProcessCandles::test_process_empty PASSED   [ 54%]
+tests/test_ccxt_data.py::TestProcessCandles::test_process_basic PASSED   [ 56%]
+tests/test_ccxt_data.py::TestProcessCandles::test_process_sort PASSED    [ 59%]
+tests/test_ccxt_data.py::TestProcessCandles::test_process_dedup PASSED   [ 61%]
+tests/test_ccxt_data.py::TestProcessCandles::test_process_nan_removal PASSED [ 63%]
+tests/test_ccxt_data.py::TestProcessCandles::test_process_inf_removal PASSED [ 65%]
+tests/test_ccxt_data.py::TestProcessCandles::test_process_timestamp_dtype PASSED [ 68%]
+tests/test_ccxt_data.py::TestProcessCandles::test_process_numeric_dtypes PASSED [ 70%]
+tests/test_ccxt_data.py::TestProcessCandles::test_process_preserves_all_values PASSED [ 72%]
+tests/test_ccxt_data.py::TestValidateCandles::test_validate_good_data PASSED [ 75%]
+tests/test_ccxt_data.py::TestValidateCandles::test_validate_empty PASSED [ 77%]
+tests/test_ccxt_data.py::TestValidateCandles::test_validate_zero_volume PASSED [ 79%]
+tests/test_ccxt_data.py::TestValidateCandles::test_validate_no_gap_warning_for_normal PASSED [ 81%]
+tests/test_ccxt_data.py::TestSaveCandles::test_save_csv_format PASSED    [ 84%]
+tests/test_ccxt_data.py::TestSaveCandles::test_save_and_load_roundtrip PASSED [ 86%]
+tests/test_ccxt_data.py::TestSaveCandles::test_save_creates_directory PASSED [ 88%]
+tests/test_ccxt_data.py::TestSaveCandles::test_save_empty_dataframe PASSED [ 90%]
+tests/test_ccxt_data.py::TestSaveCandles::test_save_atomic_no_corruption PASSED [ 93%]
+tests/test_ccxt_data.py::TestSaveCandles::test_save_timestamp_format PASSED [ 95%]
+tests/test_ccxt_data.py::TestSaveCandles::test_load_candles_parseable PASSED [ 97%]
+tests/test_ccxt_data.py::TestPipelineIntegration::test_full_pipeline_mocked PASSED [100%]
+
+============================== 44 passed in 2.01s ==============================

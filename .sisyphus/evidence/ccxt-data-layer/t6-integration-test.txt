@@ -1,0 +1,10 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 1 item
+
+tests/test_ccxt_integration.py::TestRealBybitFetch::test_fetch_real_bybit_ohlcv PASSED [100%]
+
+============================== 1 passed in 13.26s ==============================
