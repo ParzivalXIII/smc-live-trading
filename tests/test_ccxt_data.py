@@ -41,11 +41,26 @@ def make_mock_exchange(markets: dict | None = None) -> MagicMock:
                  Pass ``{}`` explicitly for empty markets.
     """
     mock = MagicMock()
-    mock.markets = markets if markets is not None else {
+    market_dict = markets if markets is not None else {
         "BTC/USDT": {},
         "ETH/USDT": {},
         "SOL/USDT": {},
     }
+    mock.markets = market_dict
+    
+    def mock_market(symbol: str) -> dict:
+        if symbol in market_dict:
+            return {"symbol": symbol}
+        # Check if inserting "/" before known quote currencies matches
+        for quote in ["USDT", "USDC", "BUSD", "USD", "BTC", "ETH", "BNB"]:
+            if symbol.endswith(quote) and len(symbol) > len(quote):
+                candidate = symbol[: -len(quote)] + "/" + quote
+                if candidate in market_dict:
+                    return {"symbol": candidate}
+        # Also check via markets_by_id (simplified)
+        raise Exception(f"Symbol {symbol} not found")
+    
+    mock.market.side_effect = mock_market
     mock.load_markets.return_value = None
     mock.parse_timeframe.return_value = 3600  # 1h in seconds
     return mock

@@ -47,6 +47,10 @@ class ExchangeFactory:
     def resolve_symbol(cls, exchange, symbol: str) -> str:
         """Resolve a raw symbol to CCXT unified format (e.g. 'BTCUSDT' → 'BTC/USDT').
 
+        Uses CCXT's own market metadata first, then falls back to separator
+        normalization. Prefers exchange.market() which checks both
+        exchange.markets and exchange.markets_by_id internally.
+
         Args:
             exchange: CCXT exchange instance (with markets loaded).
             symbol: Raw symbol string.
@@ -57,29 +61,25 @@ class ExchangeFactory:
         Raises:
             ValueError: If the symbol cannot be resolved in exchange markets.
         """
+        # Direct lookup (fast path)
         if symbol in exchange.markets:
             return symbol
 
-        # Try inserting / before known quote currencies
-        import re  # noqa: F811
+        # Let CCXT resolve via markets / markets_by_id / market IDs
+        try:
+            return exchange.market(symbol)["symbol"]
+        except Exception:
+            pass
 
-        for quote in ["USDT", "USDC", "BUSD", "USD", "BTC", "ETH", "BNB"]:
-            if symbol.endswith(quote) and len(symbol) > len(quote):
-                candidate = symbol[: -len(quote)] + "/" + quote
-                if candidate in exchange.markets:
-                    return candidate
-
-        # Try common separator variations
-        for sep in ["_", "-"]:
-            if sep in symbol:
-                candidate = symbol.replace(sep, "/")
-                if candidate in exchange.markets:
-                    return candidate
-
-        # Try upper-case
-        upper_sym = symbol.upper()
-        if upper_sym != symbol:
-            return cls.resolve_symbol(exchange, upper_sym)
+        # Normalize separators and try again
+        normalized = symbol.replace("-", "/").replace("_", "/")
+        if normalized != symbol:
+            if normalized in exchange.markets:
+                return normalized
+            try:
+                return exchange.market(normalized)["symbol"]
+            except Exception:
+                pass
 
         raise ValueError(
             f"Symbol '{symbol}' not found in exchange markets. "
