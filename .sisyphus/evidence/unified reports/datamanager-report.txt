@@ -1,0 +1,121 @@
+DataManager — Implementation Complete
+=======================================
+
+Files:   trade_scripts/data_manager.py (127 lines)
+         trade_scripts/__init__.py (modified, +DataManager export)
+Tests:   tests/test_data_manager.py (11 tests)
+Date:    2026-06-30
+
+
+Purpose
+-------
+
+DataManager sits between the CCXT fetcher/processor and CSV storage.
+It manages incremental OHLCV data fetching: determine file path →
+load existing → find last timestamp → fetch only missing candles →
+merge → dedup → save atomically.
+
+
+Pipeline Position
+-----------------
+
+  CCXT Exchange
+       ↓
+  fetch_ohlcv()          (trade_scripts/fetcher.py)
+       ↓
+  process_candles()      (trade_scripts/processor.py)
+       ↓
+  DataManager.update()   (trade_scripts/data_manager.py)  ← NEW
+       ↓
+  save_candles()         (trade_scripts/storage.py)
+       ↓
+  analyze_ta.py → Orchestrator
+
+
+Architecture
+------------
+
+  DataManager is pure composition — it does NOT reimplement any
+  module logic. It delegates to:
+
+    ExchangeFactory.create()        → exchange instance
+    ExchangeFactory.resolve_symbol() → unified symbol
+    fetch_ohlcv()                   → raw candle list
+    process_candles()               → normalized DataFrame
+    load_candles()                  → existing CSV data
+    save_candles()                  → atomic CSV write
+
+  Zero logic reimplementation. Clean separation of concerns.
+
+
+DataManager.update() Flow
+--------------------------
+
+  1. Resolve symbol (e.g. "BTCUSDT" → "BTC/USDT")
+  2. Build CSV path: data/ohlcv_{resolved}_{tf}.csv
+  3. Load existing CSV (if exists, handle corruption)
+  4. Determine fetch_since:
+     - If existing data: last_timestamp + 1ms (incremental)
+     - If explicit since: use it
+     - Otherwise: None (exchange default)
+  5. Fetch only missing candles from exchange
+  6. Process new candles (sort, dedup, clean)
+  7. Merge new + existing (concat → sort → dedup → reset_index)
+  8. Save atomically (tempfile + rename)
+  9. Return merged DataFrame
+
+
+Oracle Issues Resolved
+-----------------------
+
+  # | Issue                                         | Fix
+  ───|───────────────────────────────────────────────|────────────────────
+  1  | load_candles() raises FileNotFoundError       | csv_path.exists() guard
+  2  | CSV path must use resolved symbol             | ExchangeFactory.resolve_symbol()
+  3  | Corrupted CSV crashes                        | Catch EmptyDataError/ParserError/ValueError, delete+re-fetch
+  4  | Exchange errors should propagate              | Let exceptions through (no silent stale data)
+  5  | DataManager not exported in __init__.py       | Added to __all__ + imports
+
+
+Test Results — 11/11 pass
+--------------------------
+
+  Test                                                    Status
+  ─────────────────────────────────────────────────────   ──────
+  test_csv_path_resolves_symbol                            ✅
+  test_csv_path_with_separator                             ✅
+  test_csv_path_appends_timeframe                          ✅
+  test_first_fetch_creates_csv                             ✅
+  test_incremental_fetch_appends                           ✅
+  test_incremental_resume_overrides_since                  ✅
+  test_no_new_data_returns_existing                        ✅
+  test_corrupted_csv_recovered                             ✅
+  test_exchange_error_propagates                           ✅
+  test_since_parameter_used                                ✅
+  test_full_pipeline_mocked                                ✅
+
+
+Usage
+------
+
+  from trade_scripts.data_manager import DataManager
+
+  dm = DataManager()                         # default: bybit, data/
+
+  # First fetch (no CSV exists)
+  df = dm.update("BTCUSDT", "4h")
+  # → fetches from exchange, saves to data/ohlcv_BTCUSDT_4h.csv
+  # → returns DataFrame with all candles
+
+  # Incremental fetch (CSV exists)
+  df = dm.update("BTCUSDT", "4h")
+  # → reads last timestamp from CSV
+  # → fetches only newer candles
+  # → merges, deduplicates, saves atomically
+
+  # Backfill with explicit since
+  df = dm.update("ETHUSDT", "1d", since=1700000000000)
+
+  # Custom exchange and config
+  dm = DataManager(exchange_id="binance", data_dir="custom_data",
+                   config={"apiKey": "...", "secret": "..."})
