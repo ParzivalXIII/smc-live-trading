@@ -194,6 +194,71 @@ class TestDataManagerUpdate:
             assert call_args[2] != 1700000000000  # overridden, not the explicit value
 
 
+    def test_idempotent_update_no_new_candles(self, mock_exchange, data_dir):
+        """Multiple update() calls with no new exchange candles produce identical CSV.
+
+        This is the key invariant: if nothing changes on the exchange,
+        repeated calls to update() must not corrupt or mutate the CSV.
+        """
+        mock_exchange.fetch_ohlcv.return_value = [
+            [1700000000000, 100.0, 110.0, 90.0, 105.0, 1000.0],
+            [1700003600000, 106.0, 116.0, 96.0, 111.0, 1100.0],
+        ]
+
+        with patch("trade_scripts.data_manager.ExchangeFactory.create", return_value=mock_exchange):
+            dm = DataManager(data_dir=str(data_dir))
+
+            # Initial fetch
+            df_first = dm.update("BTCUSDT", "4h")
+            csv_path = data_dir / "ohlcv_BTCUSDT_4h.csv"
+            first_content = csv_path.read_text()
+            first_shape = df_first.shape
+
+            # Second call — exchange returns no new candles (empty list)
+            mock_exchange.fetch_ohlcv.return_value = []
+            df_second = dm.update("BTCUSDT", "4h")
+
+            # Third call — exchange returns no new candles (empty list)
+            df_third = dm.update("BTCUSDT", "4h")
+
+            # Fourth call — still no new candles
+            df_fourth = dm.update("BTCUSDT", "4h")
+
+            # All returns are identical
+            assert df_second.shape == first_shape
+            assert df_third.shape == first_shape
+            assert df_fourth.shape == first_shape
+            assert df_second.equals(df_second)
+            assert df_third.equals(df_fourth)
+
+            # CSV content unchanged
+            assert csv_path.read_text() == first_content
+
+            # DataFrames are value-equal (not reference-equal)
+            # dtype may differ: process_candles → datetime64[ms], CSV round-trip → datetime64[us]
+            pd.testing.assert_frame_equal(df_first, df_fourth, check_dtype=False)
+
+    def test_incremental_update_adds_rows(self, mock_exchange, data_dir):
+        """Multiple update() calls accumulate new candles correctly."""
+        mock_exchange.fetch_ohlcv.return_value = [
+            [1700000000000, 100.0, 110.0, 90.0, 105.0, 1000.0],
+        ]
+
+        with patch("trade_scripts.data_manager.ExchangeFactory.create", return_value=mock_exchange):
+            dm = DataManager(data_dir=str(data_dir))
+            df = dm.update("BTCUSDT", "4h")
+            assert len(df) == 1
+
+            # Second call — exchange returns new candle
+            mock_exchange.fetch_ohlcv.return_value = [
+                [1700003600000, 106.0, 116.0, 96.0, 111.0, 1100.0],
+            ]
+            df2 = dm.update("BTCUSDT", "4h")
+            assert len(df2) == 2
+            assert df2["close"].iloc[0] == 105.0
+            assert df2["close"].iloc[1] == 111.0
+
+
 class TestDataManagerIntegration:
     def test_full_pipeline_mocked(self, mock_exchange, data_dir):
         """Full pipeline: fetch → process → save → load → verify."""
