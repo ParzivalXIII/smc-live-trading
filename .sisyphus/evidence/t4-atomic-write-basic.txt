@@ -1,0 +1,6 @@
+T4: Atomic write — basic script run
+=====================================
+Command: rm -f data/ohlcv_BTCUSDT_1d_ta.csv && uv run python trade_scripts/analyze_ta.py BTC/USDT --timeframe 1d
+
+Result: Script completed successfully, file created.
+  → data/ohlcv_BTCUSDT_1d_ta.csv

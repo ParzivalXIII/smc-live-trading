@@ -1,0 +1,10 @@
+T5: No stale trade-scripts references outside plan + Oracle review
+===================================================================
+Command: grep -rn 'trade-scripts' --include='*.py' --include='*.toml' --include='*.md' --include='*.yml' --include='*.yaml' --include='*.json' . | grep -v '.sisyphus/evidence/oracle-review' | grep -v '.git/' | grep -v 'node_modules/' | grep -v '.sisyphus/plans/fix-analyze-ta.md'
+
+Result: NO_STALE_REFERENCES_OUTSIDE_PLAN_AND_ORACLE
+
+Only references to 'trade-scripts' are in:
+  - .sisyphus/plans/fix-analyze-ta.md (the plan document — skipped)
+  - .sisyphus/evidence/oracle-review-analyze-ta.md (historical record — skipped per plan)
+No source code files need updating.

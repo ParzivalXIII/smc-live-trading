@@ -1,0 +1,3 @@
+Conflicting LTF test: PASS
+bias=bullish, score=4.0
+reasons=['HTF (daily) sets bullish regime', 'LTF (h4) conflicts — reduced confidence']

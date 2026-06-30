@@ -1,0 +1,34 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 94 items / 69 deselected / 25 selected
+
+tests/test_analyze_ta_units.py::TestMacdCross::test_macd_cross[macd_vals0-signal_vals0-expected0] PASSED [  4%]
+tests/test_analyze_ta_units.py::TestMacdCross::test_macd_cross[macd_vals1-signal_vals1-expected1] PASSED [  8%]
+tests/test_analyze_ta_units.py::TestMacdCross::test_macd_cross[macd_vals2-signal_vals2-expected2] PASSED [ 12%]
+tests/test_analyze_ta_units.py::TestMacdCross::test_macd_cross[macd_vals3-signal_vals3-None] PASSED [ 16%]
+tests/test_analyze_ta_units.py::TestMacdCross::test_macd_cross[macd_vals4-signal_vals4-expected4] PASSED [ 20%]
+tests/test_analyze_ta_units.py::TestMacdCross::test_macd_cross[macd_vals5-signal_vals5-expected5] PASSED [ 24%]
+tests/test_analyze_ta_units.py::TestMacdCross::test_macd_cross[macd_vals6-signal_vals6-expected6] PASSED [ 28%]
+tests/test_analyze_ta_units.py::TestMacdCross::test_macd_cross[macd_vals7-signal_vals7-expected7] PASSED [ 32%]
+tests/test_analyze_ta_units.py::TestMacdCross::test_macd_cross_nan_middle PASSED [ 36%]
+tests/test_analyze_ta_units.py::TestObvSlope::test_obv_slope[obv_vals0-1.0] PASSED [ 40%]
+tests/test_analyze_ta_units.py::TestObvSlope::test_obv_slope[obv_vals1--1.0] PASSED [ 44%]
+tests/test_analyze_ta_units.py::TestObvSlope::test_obv_slope[obv_vals2-0.0] PASSED [ 48%]
+tests/test_analyze_ta_units.py::TestObvSlope::test_obv_slope[obv_vals3-0.0] PASSED [ 52%]
+tests/test_analyze_ta_units.py::TestObvSlope::test_obv_slope[obv_vals4-1.0] PASSED [ 56%]
+tests/test_analyze_ta_units.py::TestObvSlope::test_obv_slope_all_zero PASSED [ 60%]
+tests/test_analyze_ta_units.py::TestObvSlope::test_obv_slope_nan_in_window PASSED [ 64%]
+tests/test_analyze_ta_units.py::TestObvSlope::test_obv_slope_insufficient PASSED [ 68%]
+tests/test_analyze_ta_units.py::TestObvSlope::test_obv_slope_at_threshold PASSED [ 72%]
+tests/test_analyze_ta_units.py::TestPriceVsBb::test_price_vs_bb[close_vals0-upper_vals0-lower_vals0-expected0] PASSED [ 76%]
+tests/test_analyze_ta_units.py::TestPriceVsBb::test_price_vs_bb[close_vals1-upper_vals1-lower_vals1-expected1] PASSED [ 80%]
+tests/test_analyze_ta_units.py::TestPriceVsBb::test_price_vs_bb[close_vals2-upper_vals2-lower_vals2-expected2] PASSED [ 84%]
+tests/test_analyze_ta_units.py::TestPriceVsBb::test_price_vs_bb[close_vals3-upper_vals3-lower_vals3-expected3] PASSED [ 88%]
+tests/test_analyze_ta_units.py::TestPriceVsBb::test_price_vs_bb[close_vals4-upper_vals4-lower_vals4-expected4] PASSED [ 92%]
+tests/test_analyze_ta_units.py::TestPriceVsBb::test_price_vs_bb[close_vals5-upper_vals5-lower_vals5-expected5] PASSED [ 96%]
+tests/test_analyze_ta_units.py::TestPriceVsBb::test_price_vs_bb[close_vals6-upper_vals6-lower_vals6-expected6] PASSED [100%]
+
+====================== 25 passed, 69 deselected in 0.89s =======================

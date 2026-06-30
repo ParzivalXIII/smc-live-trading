@@ -1,0 +1,10 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 1 item
+
+tests/test_analyze_ta_units.py::TestRsiLabel::test_rsi_nan PASSED        [100%]
+
+============================== 1 passed in 0.73s ===============================

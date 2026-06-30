@@ -1,0 +1,1 @@
+PASS: 39 rows (boundary) returns all-NaN, no crash

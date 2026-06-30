@@ -1,0 +1,5 @@
+T1: trade_scripts/__init__.py exists
+======================================
+Command: ls -la trade_scripts/__init__.py
+Result:
+-rw-rw-r-- 1 parzivalxiii parzivalxiii 1 Jun 23 15:41 trade_scripts/__init__.py

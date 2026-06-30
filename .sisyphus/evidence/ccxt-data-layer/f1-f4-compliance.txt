@@ -1,0 +1,31 @@
+Traceback (most recent call last):
+  File "<string>", line 74, in <module>
+AssertionError: OK
+=== F1: Plan Compliance Audit ===
+
+[PASS] 1. Singleton exchange instance
+[PASS] 2. No auth required for OHLCV
+[PASS] 3. load_markets() called during setup
+[PASS] 4. Symbol resolution via exchange markets
+[PASS] 5. Paginated fetch loop works
+[PASS] 6. Dedup + sort after processing
+[PASS] 7. Four separate modules
+[PASS] 8. No snapshot entanglement
+[PASS] 9. Auth optional in factory
+[PASS] 10. Unit tests pass
+
+=== F4: Scope Fidelity (Guardrails) ===
+
+[PASS] No private endpoints in exchange
+[PASS] No private endpoints in fetcher
+[PASS] No private endpoints in processor
+[PASS] No private endpoints in storage
+=== F4: Scope Fidelity (Guardrails) ===
+  [PASS] exchange — all guardrails intact
+  [PASS] fetcher — all guardrails intact
+  [PASS] processor — all guardrails intact
+  [PASS] storage — all guardrails intact
+
+  [INFO] analyze_ta.py hash: e8f7aa7c145c00fec151cd9e982dd270 (unchanged)
+
+=== All guardrails confirmed intact ===

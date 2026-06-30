@@ -1,0 +1,19 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collected 11 items
+
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_normal PASSED
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_missing_file PASSED
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_empty_file PASSED
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_header_only_csv PASSED
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_mfi14_nan PASSED
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_obv_nan PASSED
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_obv_slope_empty_string PASSED
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_obv_slope_none_string PASSED
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_obv_slope_valid_float PASSED
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_missing_mfi14_obv_columns PASSED
+tests/test_analyze_ta_io.py::TestLoadTaLatest::test_close_nan PASSED
+
+============================== 11 passed in 1.16s ===============================

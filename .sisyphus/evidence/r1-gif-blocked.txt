@@ -1,0 +1,8 @@
+R1: F3 GIF Visualization — BLOCKED
+========================================
+Dependencies required: plotly, Pillow, imageio, python-binance
+None of these are installed in the current venv.
+Skipping — this is a visual QA check, not a core deliverable.
+
+To run: pip install plotly Pillow imageio python-binance
+Then: python tests/generate_gif.py

@@ -1,0 +1,5 @@
+[1;33mThank you for using SmartMoneyConcepts! ⭐ Please show your support by giving a star on the GitHub repository: [4;34mhttps://github.com/joshyattridge/smart-money-concepts[0m
+Batch comparison: PASS (0.0% diff)
+Total rows: 24424
+Diff rows: 0
+First diff index: None

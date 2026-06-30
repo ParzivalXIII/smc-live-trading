@@ -1,0 +1,16 @@
+--- T5: Integrate StructureEngine into backtest replay ---
+Edited backtest.py:
+  1. Added import: StructureEngine, SwingConfirmed
+  2. Added bos_confirmation_window: int = 10 to BacktestConfig
+  3. Modified replay_phase(): create StructureEngine, feed swings, call check_confirmations every bar
+  4. Updated BacktestResult with structure_events and structure_engine fields
+  5. Updated BacktestHarness.run() to unpack and pass new values
+
+QA verification (EURUSD 15M):
+  - Unique structure events: 1025
+    - Confirmed: 899
+    - Cancelled: 126
+    - Provisional remaining: 0
+  - Swings fed to engine: 2415
+  - BacktestConfig.bos_confirmation_window: 10
+  - Backward compatible: replay_phase still returns original 2 values + 2 new

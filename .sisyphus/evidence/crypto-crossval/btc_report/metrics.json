@@ -1,0 +1,22 @@
+{
+  "total_swings": 1802,
+  "swing_highs": 901,
+  "swing_lows": 901,
+  "total_bos": 410,
+  "bullish_bos": 214,
+  "bearish_bos": 196,
+  "total_choch": 213,
+  "total_ob": 85,
+  "bullish_ob": 46,
+  "bearish_ob": 39,
+  "avg_ob_pct": 38.64,
+  "total_liquidity_zones": 313,
+  "avg_liq_zone_width_bars": 435.63,
+  "sweep_rate": 1.0,
+  "avg_event_delay_bars": 2.3,
+  "min_event_delay": 1,
+  "max_event_delay": 12,
+  "batch_diff_score": 0.0,
+  "diff_rows": 0,
+  "processing_time_seconds": 15.67
+}

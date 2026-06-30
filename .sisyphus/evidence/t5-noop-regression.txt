@@ -1,0 +1,5 @@
+T5 QA: NoopStrategy regression test
+Status: PASS
+Batch diff score: 0.0
+Result: 0 trades, existing metrics unchanged
+Timestamp: 2026-06-23

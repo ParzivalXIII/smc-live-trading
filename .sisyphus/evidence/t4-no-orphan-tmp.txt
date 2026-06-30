@@ -1,0 +1,7 @@
+T4: No orphan .tmp files left behind
+======================================
+Command: find data -name '*.tmp' -type f 2>/dev/null | wc -l
+Result: 0
+
+The temp file created by tempfile.mkstemp() is properly cleaned up (renamed via shutil.move
+on success, unlinked on exception).

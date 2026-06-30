@@ -1,0 +1,17 @@
+F4: Scope Fidelity Check
+==================================================
+Modified files (from git):
+  smartmoneyconcepts/smc.py
+  tests/test_data/EURUSD/*_result_data.csv (5 golden files)
+  tests/unit_tests.py
+New files (untracked):
+  tests/test_causality.py
+  tests/stream_compare.py
+  tests/test_data/EURUSD/stream_pass1.csv
+  tests/test_data/EURUSD/stream_pass2.csv
+
+Guardrail check:
+  No new production files outside smc.py: PASS
+  No changes to FVG/sessions/previous_high_low: PASS
+  No external dependencies added: PASS
+  Monolithic architecture preserved: PASS

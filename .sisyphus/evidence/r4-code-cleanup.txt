@@ -1,0 +1,4 @@
+Code Cleanup — DONE
+========================================
+1. Removed unused _last_confirmed_index attribute (was initialized but never read)
+2. Removed dead 'atr =' assignment and # noqa: F841 suppression (return value unused)

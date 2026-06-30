@@ -1,0 +1,78 @@
+======================================================================
+GAP ANALYSIS REPORT
+======================================================================
+
+Total batch BOS events: 546
+Matched by streaming:  513 (94.0%)
+Missed by streaming:   33 (6.0%)
+Confirmation window:   10 bars
+Level tolerance:       0.001 (0.1%)
+
+──────────────────────────────────────────────────────────────────────
+Metric                              Missed (Mean)      Matched (Mean)     Ratio     
+──────────────────────────────────────────────────────────────────────
+Max break distance (50 bars after S1+2) 0.001541           0.003271           0.4709    
+Return at 10 bars after S1+2        -0.001106          0.000154           -7.1661   
+Return at 20 bars after S1+2        -0.001617          0.000468           -3.4579   
+Return at 50 bars after S1+2        -0.002188          0.000382           -5.7257   
+
+──────────────────────────────────────────────────────────────────────
+Median comparison (robust to outliers)
+──────────────────────────────────────────────────────────────────────
+Metric                              Missed (Med)       Matched (Med)     
+──────────────────────────────────────────────────────────────────────
+Max break distance (50 bars after S1+2) 0.001240           0.002550          
+Return at 10 bars after S1+2        -0.000640          0.000050          
+Return at 20 bars after S1+2        -0.000980          0.000310          
+Return at 50 bars after S1+2        -0.001380          0.000290          
+
+──────────────────────────────────────────────────────────────────────
+Direction Distribution
+──────────────────────────────────────────────────────────────────────
+  Missed  : Bullish=  22 ( 66.7%), Bearish=  11 ( 33.3%)
+  Matched : Bullish= 260 ( 50.7%), Bearish= 253 ( 49.3%)
+
+──────────────────────────────────────────────────────────────────────
+Distribution Shapes (std dev, percentiles)
+──────────────────────────────────────────────────────────────────────
+
+  Max break distance (50 bars after S1+2):
+    Missed:  mean=0.001541, std=0.001486, p25=0.000530, p75=0.001780, n=33
+    Matched: mean=0.003271, std=0.002587, p25=0.001520, p75=0.004140, n=513
+
+  Return at 10 bars after S1+2:
+    Missed:  mean=-0.001106, std=0.001631, p25=-0.001220, p75=-0.000360, n=33
+    Matched: mean=0.000154, std=0.001431, p25=-0.000480, p75=0.000680, n=513
+
+  Return at 20 bars after S1+2:
+    Missed:  mean=-0.001617, std=0.002622, p25=-0.001790, p75=-0.000510, n=33
+    Matched: mean=0.000468, std=0.002118, p25=-0.000500, p75=0.001280, n=513
+
+  Return at 50 bars after S1+2:
+    Missed:  mean=-0.002188, std=0.003618, p25=-0.004120, p75=-0.000290, n=33
+    Matched: mean=0.000382, std=0.003815, p25=-0.001730, p75=0.002590, n=513
+
+──────────────────────────────────────────────────────────────────────
+HYPOTHESIS TEST: Is the gap systematically losing high-edge trades?
+──────────────────────────────────────────────────────────────────────
+
+    H0: Mean subsequent_return(missed) <= Mean subsequent_return(matched)
+        → Gap is benign (missed events are not higher-edge than matched)
+    H1: Mean subsequent_return(missed) > Mean subsequent_return(matched)
+        → Gap is systematically losing high-edge trades
+    
+  Return at 10 bars after S1+2:
+    Mean missed - mean matched = -0.001261
+    ▸ MISSED <= MATCHED (gap is benign)
+  Return at 20 bars after S1+2:
+    Mean missed - mean matched = -0.002085
+    ▸ MISSED <= MATCHED (gap is benign)
+  Return at 50 bars after S1+2:
+    Mean missed - mean matched = -0.002571
+    ▸ MISSED <= MATCHED (gap is benign)
+
+──────────────────────────────────────────────────────────────────────
+CONCLUSION
+──────────────────────────────────────────────────────────────────────
+  The timing gap is BENIGN — missed events do not exhibit
+  higher subsequent returns than matched events.

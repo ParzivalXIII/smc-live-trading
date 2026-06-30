@@ -1,0 +1,28 @@
+=== End-to-End MarketSnapshot for BTC/USDT (1d) ===
+Timestamp: 2024-02-11 15:00:00
+Close: 102.81
+Trend: below (close=102.81, ema21=104.24)
+EMA21 Slope: -0.0014
+RSI14: 34.8
+MFI14: 67.2
+MACD: -0.56
+MACD Signal: -0.52
+ATR14: 4.18
+BB Width: 0.0270
+
+Confluence Score: 1/10
+Confluence Bias: bearish
+Reasons:
+  close (102.81) <= ema21 (104.24): +0
+  ema21_slope (-0.0014) <= 0: +0
+  macd (-0.56) <= macd_signal (-0.52): +0
+  rsi14 (34.8) <= 55: +0
+  mfi14 (67.2) > 50: +1
+  last_bos_direction is None or 0: +0
+  nearest_liquidity_above is None: +0
+  nearest_liquidity_below is None: +0
+
+
+=== MarketContext ===
+Alignment: bearish
+Composite: score=1, max_score=10, bias=bearish

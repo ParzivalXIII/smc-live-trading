@@ -1,0 +1,42 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 33 items
+
+tests/test_decision_engine.py::TestDecisionEngine::test_look_for_longs PASSED [  3%]
+tests/test_decision_engine.py::TestDecisionEngine::test_avoid_shorts PASSED [  6%]
+tests/test_decision_engine.py::TestDecisionEngine::test_stand_aside PASSED [  9%]
+tests/test_decision_engine.py::TestDecisionEngine::test_watch_breakout_modifier PASSED [ 12%]
+tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_liquidity_first PASSED [ 15%]
+tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_swing_fallback PASSED [ 18%]
+tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_ema_fallback PASSED [ 21%]
+tests/test_decision_engine.py::TestDecisionEngine::test_invalidation_bullish_no_fallback PASSED [ 24%]
+tests/test_decision_engine.py::TestDecisionEngine::test_target_bullish PASSED [ 27%]
+tests/test_decision_engine.py::TestDecisionEngine::test_target_bearish PASSED [ 30%]
+tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[10-1.0] PASSED [ 33%]
+tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[7-0.7] PASSED [ 36%]
+tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[4-0.4] PASSED [ 39%]
+tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[0-0.0] PASSED [ 42%]
+tests/test_decision_engine.py::TestDecisionEngine::test_confidence_formula[-4-0.4] PASSED [ 45%]
+tests/test_decision_engine.py::TestDecisionEngine::test_neutral_invalidation_target_none PASSED [ 48%]
+tests/test_decision_engine.py::TestDecisionEngine::test_with_market_context PASSED [ 51%]
+tests/test_decision_engine.py::TestDecisionEngine::test_without_market_context PASSED [ 54%]
+tests/test_decision_engine.py::TestDecisionEdgeCases::test_decision_score_zero PASSED [ 57%]
+tests/test_decision_engine.py::TestDecisionEdgeCases::test_decision_score_threshold_boundaries[-1-avoid_shorts-bearish] PASSED [ 60%]
+tests/test_decision_engine.py::TestDecisionEdgeCases::test_decision_score_threshold_boundaries[0-stand_aside-bearish] PASSED [ 63%]
+tests/test_decision_engine.py::TestDecisionEdgeCases::test_decision_score_threshold_boundaries[3-stand_aside-bearish] PASSED [ 66%]
+tests/test_decision_engine.py::TestDecisionEdgeCases::test_decision_score_threshold_boundaries[4-stand_aside-neutral] PASSED [ 69%]
+tests/test_decision_engine.py::TestDecisionEdgeCases::test_decision_score_threshold_boundaries[6-stand_aside-neutral] PASSED [ 72%]
+tests/test_decision_engine.py::TestDecisionEdgeCases::test_decision_score_threshold_boundaries[7-look_for_longs-bullish] PASSED [ 75%]
+tests/test_decision_engine.py::TestDecisionEdgeCases::test_decision_score_threshold_boundaries[10-look_for_longs-bullish] PASSED [ 78%]
+tests/test_decision_engine.py::TestDecisionEdgeCases::test_decision_target_swing_fallback PASSED [ 81%]
+tests/test_decision_engine.py::TestDecisionEdgeCases::test_decision_target_no_fallback PASSED [ 84%]
+tests/test_decision_engine.py::TestDecisionEdgeCases::test_decision_both_liquidity_present PASSED [ 87%]
+tests/test_decision_engine.py::TestDecisionEdgeCases::test_decision_breakout_pending PASSED [ 90%]
+tests/test_decision_engine.py::TestDecisionEdgeCases::test_decision_no_breakout_pending PASSED [ 93%]
+tests/test_decision_engine.py::TestDecisionEdgeCases::test_decision_context_hierarchical_influence PASSED [ 96%]
+tests/test_decision_engine.py::TestDecisionEdgeCases::test_decision_all_optional_none PASSED [100%]
+
+============================== 33 passed in 0.38s ==============================

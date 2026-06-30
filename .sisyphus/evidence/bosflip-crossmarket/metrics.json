@@ -1,0 +1,57 @@
+{
+  "BTCUSDT-4H": {
+    "total_trades": 170,
+    "wins": 130,
+    "losses": 40,
+    "win_rate": 0.7647,
+    "profit_factor": 6.5025,
+    "net_pnl": 496364.05,
+    "max_drawdown": 17056.18,
+    "avg_trade_bars": 112.62,
+    "median_trade_bars": 72.5
+  },
+  "SOLUSDT-4H": {
+    "total_trades": 149,
+    "wins": 113,
+    "losses": 36,
+    "win_rate": 0.7584,
+    "profit_factor": 4.4315,
+    "net_pnl": 1445.9246,
+    "max_drawdown": 109.2,
+    "avg_trade_bars": 85.67,
+    "median_trade_bars": 61.0
+  },
+  "ADAUSDT-4H": {
+    "total_trades": 174,
+    "wins": 141,
+    "losses": 33,
+    "win_rate": 0.8103,
+    "profit_factor": 10.3613,
+    "net_pnl": 13.718,
+    "max_drawdown": 0.377,
+    "avg_trade_bars": 102.29,
+    "median_trade_bars": 70.0
+  },
+  "BNBUSDT-4H": {
+    "total_trades": 195,
+    "wins": 151,
+    "losses": 44,
+    "win_rate": 0.7744,
+    "profit_factor": 5.84,
+    "net_pnl": 4498.1989,
+    "max_drawdown": 202.35,
+    "avg_trade_bars": 96.41,
+    "median_trade_bars": 74.0
+  },
+  "EURUSD-15M": {
+    "total_trades": 260,
+    "wins": 182,
+    "losses": 78,
+    "win_rate": 0.7,
+    "profit_factor": 3.5277,
+    "net_pnl": 0.5859,
+    "max_drawdown": 0.044,
+    "avg_trade_bars": 93.58,
+    "median_trade_bars": 70.0
+  }
+}

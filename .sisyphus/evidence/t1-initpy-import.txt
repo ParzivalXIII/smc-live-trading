@@ -1,0 +1,4 @@
+T1: trade_scripts importable
+=============================
+Command: uv run python -c "import trade_scripts; print('package_ok')"
+Result: package_ok

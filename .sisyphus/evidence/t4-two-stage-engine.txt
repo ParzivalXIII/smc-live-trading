@@ -1,0 +1,25 @@
+--- T4: Two-stage StructureEngine ---
+Created smartmoneyconcepts/structures.py (198 lines)
+
+Dataclasses:
+  - SwingConfirmed (index, direction, level, timestamp, pivot_index)
+  - StructureEvent (event_type, direction, level, swing_index, trigger_index, timestamp, status, confirmed_at_index)
+
+StructureEngine class:
+  - __init__(confirmation_window=10)
+  - update(swing) → Stage 1: pattern detection, emits provisional events
+  - check_confirmations(index, high, low) → Stage 2: confirm/cancel
+  - events, swings, confirmed_events, provisional_events properties
+
+Verification (all passed):
+  1. Bullish BOS → confirmed
+  2. Bullish BOS → cancelled (window expiry)
+  3. Provisional still pending
+  4. Bearish BOS → confirmed
+  5. Bullish CHOCH → confirmed
+  6. Bearish CHOCH → confirmed
+  7. < 4 swings → empty
+  8. Non-pattern (wrong level ordering) → empty
+  9. Dedup: same pattern key doesn't re-emit
+  10. Confirmation at exact boundary
+  11. Expiry at boundary

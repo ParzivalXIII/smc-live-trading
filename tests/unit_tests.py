@@ -42,7 +42,9 @@ class TestSmartMoneyConcepts(unittest.TestCase):
 
     def test_swing_highs_lows(self):
         start_time = time.time()
-        swing_highs_lows_data = smc.swing_highs_lows(df, swing_length=5)
+        swing_highs_lows_data = smc.swing_highs_lows(
+            df, swing_length=5, confirmation_bars=2, atr_multiplier=1.5, atr_period=7
+        )
         swing_highs_lows_result_data = pd.read_csv(
             os.path.join(TEST_DATA_DIR, "swing_highs_lows_result_data.csv")
         )
@@ -51,7 +53,9 @@ class TestSmartMoneyConcepts(unittest.TestCase):
 
     def test_bos_choch(self):
         start_time = time.time()
-        swing_highs_lows_data = smc.swing_highs_lows(df, swing_length=5)
+        swing_highs_lows_data = smc.swing_highs_lows(
+            df, swing_length=5, confirmation_bars=2, atr_multiplier=1.5, atr_period=7
+        )
         bos_choch_data = smc.bos_choch(df, swing_highs_lows_data)
         bos_choch_result_data = pd.read_csv(
             os.path.join(TEST_DATA_DIR, "bos_choch_result_data.csv")
@@ -63,7 +67,9 @@ class TestSmartMoneyConcepts(unittest.TestCase):
 
     def test_ob(self):
         start_time = time.time()
-        swing_highs_lows_data = smc.swing_highs_lows(df, swing_length=5)
+        swing_highs_lows_data = smc.swing_highs_lows(
+            df, swing_length=5, confirmation_bars=2, atr_multiplier=1.5, atr_period=7
+        )
         ob_data = smc.ob(df, swing_highs_lows_data)
         ob_result_data = pd.read_csv(
             os.path.join(TEST_DATA_DIR, "ob_result_data.csv")
@@ -82,13 +88,17 @@ class TestSmartMoneyConcepts(unittest.TestCase):
                 "volume": [5, 6, 7],
             }
         )
-        swing = smc.swing_highs_lows(short_df, swing_length=1)
+        swing = smc.swing_highs_lows(
+            short_df, swing_length=2, confirmation_bars=1, atr_multiplier=1.5, atr_period=2
+        )
         ob_df = smc.ob(short_df, swing)
         self.assertEqual(len(ob_df), len(short_df))
 
     def test_liquidity(self):
         start_time = time.time()
-        swing_highs_lows_data = smc.swing_highs_lows(df, swing_length=5)
+        swing_highs_lows_data = smc.swing_highs_lows(
+            df, swing_length=5, confirmation_bars=2, atr_multiplier=1.5, atr_period=7
+        )
         liquidity_data = smc.liquidity(df, swing_highs_lows_data)
         liquidity_result_data = pd.read_csv(
             os.path.join(TEST_DATA_DIR, "liquidity_result_data.csv")
@@ -135,13 +145,51 @@ class TestSmartMoneyConcepts(unittest.TestCase):
 
     def test_retracements(self):
         start_time = time.time()
-        swing_highs_lows_data = smc.swing_highs_lows(df, swing_length=5)
+        swing_highs_lows_data = smc.swing_highs_lows(
+            df, swing_length=5, confirmation_bars=2, atr_multiplier=1.5, atr_period=7
+        )
         retracements = smc.retracements(df, swing_highs_lows_data)
         retracements_result_data = pd.read_csv(
             os.path.join(TEST_DATA_DIR, "retracements_result_data.csv")
         )
         print("retracements test time: ", time.time() - start_time)
         pd.testing.assert_frame_equal(retracements, retracements_result_data, check_dtype=False)
+
+    def test_swing_highs_lows_validation_swing_length(self):
+        """swing_length < 2 raises ValueError."""
+        small = df.iloc[:20]
+        with self.assertRaises(ValueError, msg="swing_length must be >= 2"):
+            smc.swing_highs_lows(small, swing_length=1)
+
+    def test_swing_highs_lows_validation_confirmation_bars(self):
+        """confirmation_bars < 1 raises ValueError."""
+        small = df.iloc[:20]
+        with self.assertRaises(ValueError, msg="confirmation_bars must be >= 1"):
+            smc.swing_highs_lows(small, swing_length=2, confirmation_bars=0)
+
+    def test_swing_highs_lows_validation_atr_multiplier(self):
+        """atr_multiplier <= 0 raises ValueError."""
+        small = df.iloc[:20]
+        with self.assertRaises(ValueError, msg="atr_multiplier must be > 0"):
+            smc.swing_highs_lows(small, swing_length=2, atr_multiplier=0)
+
+    def test_swing_highs_lows_validation_atr_period(self):
+        """atr_period < 1 raises ValueError."""
+        small = df.iloc[:20]
+        with self.assertRaises(ValueError, msg="atr_period must be >= 1"):
+            smc.swing_highs_lows(small, swing_length=2, atr_period=0)
+
+    def test_swing_highs_lows_validation_insufficient_data(self):
+        """swing_length + confirmation_bars > len(ohlc) raises ValueError."""
+        small = df.iloc[:10]
+        with self.assertRaises(ValueError, msg="insufficient data"):
+            smc.swing_highs_lows(small, swing_length=9, confirmation_bars=2)
+
+    def test_swing_highs_lows_validation_atr_period_too_large(self):
+        """atr_period > len(ohlc) raises ValueError."""
+        small = df.iloc[:5]
+        with self.assertRaises(ValueError, msg="ATR cannot be computed"):
+            smc.swing_highs_lows(small, swing_length=2, atr_period=10)
 
 
 if __name__ == "__main__":

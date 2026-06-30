@@ -1,0 +1,23 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 14 items
+
+tests/test_analyze_ta_core.py::TestComputeIndicators::test_all_23_columns_present PASSED [  7%]
+tests/test_analyze_ta_core.py::TestComputeIndicators::test_insufficient_data_5_rows PASSED [ 14%]
+tests/test_analyze_ta_core.py::TestComputeIndicators::test_single_row PASSED [ 21%]
+tests/test_analyze_ta_core.py::TestComputeIndicators::test_constant_price PASSED [ 28%]
+tests/test_analyze_ta_core.py::TestComputeIndicators::test_zero_volume PASSED [ 35%]
+tests/test_analyze_ta_core.py::TestComputeIndicators::test_bb_ordering_invariant PASSED [ 42%]
+tests/test_analyze_ta_core.py::TestComputeIndicators::test_macd_identity_invariant PASSED [ 50%]
+tests/test_analyze_ta_core.py::TestSaveEnrichedCsv::test_normal_write PASSED [ 57%]
+tests/test_analyze_ta_core.py::TestSaveEnrichedCsv::test_atomic_write_integrity PASSED [ 64%]
+tests/test_analyze_ta_core.py::TestSaveEnrichedCsv::test_no_orphan_temp_files PASSED [ 71%]
+tests/test_analyze_ta_core.py::TestSaveEnrichedCsv::test_nan_handling PASSED [ 78%]
+tests/test_analyze_ta_core.py::TestSaveEnrichedCsv::test_column_order PASSED [ 85%]
+tests/test_analyze_ta_core.py::TestSaveEnrichedCsv::test_concurrent_write_safety PASSED [ 92%]
+tests/test_analyze_ta_core.py::TestSaveEnrichedCsv::test_error_recovery PASSED [100%]
+
+============================== 14 passed in 3.18s ==============================

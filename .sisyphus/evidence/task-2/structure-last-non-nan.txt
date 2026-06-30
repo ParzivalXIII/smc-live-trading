@@ -1,0 +1,4 @@
+Swing: dir=-1, level=49000.0 ✓
+BOS: dir=1, index=6 ✓
+CHOCH: dir=-1, index=7 ✓
+S2.5 PASSED

@@ -1,0 +1,11 @@
+Bias: score=bullish, narrative=bullish, decision=bullish
+Score: 10/10
+Narrative sections: 4
+  Trend: ['Price above EMA21 (50000.00 vs 49000.00, +2.04%)', 'EMA21 slope: rising (+0.0100)']
+  Momentum: ['MACD above signal line (100.00 vs 90.00)', 'RSI-14: 62.3 — bullish', 'MFI-14: 58.1 — neutral-bullish']
+  Structure: ['No recent structure data', 'Bullish BOS confirmed (broken index 3)', 'No bearish/bullish CHOCH detected']
+  Liquidity: ['Nearest liquidity above: 51500.00', 'Nearest liquidity below: none', 'No significant liquidity clusters']
+Conclusion: Bullish continuation favored while EMA21 remains intact. Liquidity target at 51500.00.
+Decision: action=look_for_longs, confidence=1.00
+Invalidation: 49000.0, Target: 51500.0
+✅ Bias consistent across all 3 layers

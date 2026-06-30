@@ -1,0 +1,4 @@
+T2 QA: Metrics with synthetic trade data
+Status: PASS
+Result: total_trades=5, wins=3, losses=2, win_rate=0.6, gross_profit=3.5, gross_loss=1.5, profit_factor=2.3333, net_pnl=2.0, max_drawdown=1.0
+Timestamp: 2026-06-23

@@ -1,0 +1,11 @@
+R3: Parameter Validation Tests — DONE
+========================================
+Added 6 new test methods covering all ValueError guardrails:
+  test_swing_highs_lows_validation_swing_length
+  test_swing_highs_lows_validation_confirmation_bars
+  test_swing_highs_lows_validation_atr_multiplier
+  test_swing_highs_lows_validation_atr_period
+  test_swing_highs_lows_validation_insufficient_data
+  test_swing_highs_lows_validation_atr_period_too_large
+File: tests/unit_tests.py
+Result: 16/16 tests pass (10 original + 6 new)

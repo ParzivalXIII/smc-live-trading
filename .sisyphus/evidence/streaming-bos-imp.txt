@@ -1,0 +1,262 @@
+Streaming StructureEngine + Cross-Market Baseline — Implementation Complete
+=============================================================================
+
+Plan:     .sisyphus/plans/streaming-structure-engine.md
+Files:    smartmoneyconcepts/structures.py (266 lines)
+Modified: backtest.py (+229), strategies/bos_flip.py (+46)
+Tests:    tests/test_structure_engine.py (440 lines, 19 tests)
+          tests/test_streaming_vs_batch.py (181 lines, 1 integration)
+Script:   scripts/run_bosflip_crossmarket.py (176 lines)
+Engine:   smartmoneyconcepts/smc.py — ZERO changes
+Date:     2026-06-23
+
+
+Architecture
+------------
+
+Before (batch BOS):
+  Phase 1: Candle → Swing Engine → (store swings)
+  Phase 2: bos_choch(swings) → BOS retroactively stamped
+
+After (streaming BOS):
+  Phase 1: Candle → Swing Engine → Structure Engine → Events (real-time)
+  Phase 2: bos_choch(swings) → still runs for per_candle_report (parallel)
+
+
+Two-Stage StructureEngine
+--------------------------
+
+StructureEngine (smartmoneyconcepts/structures.py)
+├── update(swing: SwingConfirmed) → list[StructureEvent]
+│   └── Stage 1: 4-swing pattern detected → emit PROVISIONAL BOS/CHOCH
+│       - Bullish BOS:  [-1, 1, -1, 1] with ascending level ordering
+│       - Bearish BOS:  [1, -1, 1, -1] with descending level ordering
+│       - Bullish CHOCH: same as BOS but different level ordering criterion
+│       - Bearish CHOCH: same as BOS but different level ordering criterion
+│       - swing_index = _swings[-3].index (S1, matches batch last_positions[-2])
+│       - level = _swings[-3].level (S1's level, matches batch levels[-3])
+│
+├── check_confirmations(index, high, low) → list[StructureEvent]
+│   └── Stage 2: Called EVERY bar
+│       - Bullish: high > level → CONFIRMED
+│       - Bearish: low < level → CONFIRMED
+│       - > N bars with no break → CANCELLED (configurable window, default 10)
+│
+└── Dedup via _emitted_keys set: (type, direction, swing_index) prevents
+    double-emission of the same pattern
+
+SwingConfirmed (dataclass):
+  index: int, direction: int (1/-1), level: float, timestamp: pd.Timestamp
+
+StructureEvent (dataclass):
+  event_type: str ("BOS" / "CHOCH")
+  direction: int (1/-1)
+  level: float
+  swing_index: int
+  status: str ("provisional" / "confirmed" / "cancelled")
+  confirmed_at_index: int | None
+  cancelled_at_index: int | None
+  timestamp: pd.Timestamp | None
+
+
+Replay Loop Integration (Phase 1)
+----------------------------------
+
+for i in range(len(data)):
+    row = data.iloc[i]
+    result = engine.update(i, row)
+
+    # Collect streaming events
+    all_events = []
+
+    # If swing confirmed, feed to StructureEngine
+    if not np.isnan(result.get("HighLow", np.nan)):
+        swing = SwingConfirmed(i, result["HighLow"], result["Level"], data.index[i])
+        new_events = structure_engine.update(swing)     # Stage 1
+        all_events.extend(new_events)
+
+    # Every bar: check for break confirmations
+    status_changes = structure_engine.check_confirmations(i, row["high"], row["low"])  # Stage 2
+    all_events.extend(e for e in status_changes if e not in new_events)  # Dedup
+
+    # Call strategy with events
+    strategy_callback.update(i, row, result, simulator, structure_events=all_events)
+
+
+Strategy Protocol Update
+-------------------------
+
+class StrategyCallback(Protocol):
+    def update(
+        self,
+        candle_index: int,
+        row: pd.Series,
+        engine_result: dict,
+        simulator=None,
+        structure_events: list | None = None,  # NEW — streaming events
+    ) -> None: ...
+
+→ structure_events=None default → backward compatible
+→ NoopStrategy updated with same default
+
+
+BOSFlipStrategy V2
+-------------------
+
+class BOSFlipStrategy:
+    def update(self, candle_index, row, engine_result, simulator=None, structure_events=None):
+        # V2: Streaming path (preferred)
+        if structure_events and simulator is not None:
+            for event in structure_events:
+                if event.event_type == "BOS" and event.status == "confirmed":
+                    if event.direction == 1:  # Bullish BOS → LONG
+                        if simulator.is_short: simulator.close(candle_index, row.name, row["Close"])
+                        if simulator.is_flat: simulator.enter_long(candle_index, row.name, row["Close"])
+                    elif event.direction == -1:  # Bearish BOS → SHORT
+                        if simulator.is_long: simulator.close(candle_index, row.name, row["Close"])
+                        if simulator.is_flat: simulator.enter_short(candle_index, row.name, row["Close"])
+            return  # V2 consumed, skip V1 fallback
+
+        # V1: Fallback (batch BOS from report — backward compat)
+        ...
+
+
+Part 1: Cross-Market Baseline (post-hoc BOS)
+-----------------------------------------------
+
+All 5 datasets run with current (batch) BOSFlipStrategy:
+
+                         Trades   WinRate   Profit    AvgBars   MedBars   MaxDD
+Dataset                 ───────  ────────  ───────  ────────  ────────  ──────
+BTCUSDT-4H                 170    76.5%     6.50     112.6      72.5    17,056
+SOLUSDT-4H                 149    75.8%     4.43      85.7      61.0       109
+ADAUSDT-4H                 174    81.0%    10.36     102.3      70.0       0.38
+BNBUSDT-4H                 195    77.4%     5.84      96.4      74.0       202
+EURUSD-15M                 260    70.0%     3.53      93.6      70.0       0.04
+
+Key observations:
+  - Trade count ranges 149-260 (proportional to dataset size)
+  - Win rate stable at 70-81% across all assets
+  - Hold duration consistent: 86-113 avg bars, 61-74 median bars
+  - Profit factor varies widely (3.5-10.4) — USD-denominated, different volatility regimes
+  - Average hold is ~70-110 bars = 280-440 hours on 4H, 17-27 hours on 15M
+
+Trade Duration Metrics (new):
+  avg_trade_bars    Mean bars between entry and exit (closed trades only)
+  median_trade_bars Median bars (more robust to outliers)
+
+
+Part 2: Streaming vs Batch Cross-Validation
+---------------------------------------------
+
+EURUSD-15M comparison:
+
+  Batch BOS events:         546
+  Streaming confirmed:      513
+  Match rate:               94.0%  (well above 80% threshold)
+  Cancelled (window expiry):  68
+  Avg confirmation delay:   0.45 bars  (same-bar or next-bar mostly)
+
+  Explanation of remaining 6% miss: structural timing gap.
+  Batch scans for break from S2+2 onward; streaming only starts at S3 (4th swing).
+  Any break in [S2+2, S3-1] is permanently missed by streaming. This is the
+  inherent cost of causal detection and is documented as a known limitation.
+
+
+Test Results
+-------------
+
+Test                                Tests   Status
+────                                ─────   ──────
+python tests/unit_tests.py             16   ✅ All pass
+python tests/test_causality.py          3   ✅ All pass
+python tests/test_structure_engine.py  19   ✅ All pass
+python tests/test_streaming_vs_batch.py  1  ✅ All pass
+                                  ───────
+  Total                              39   ✅ All pass
+
+
+Momus Fixes Applied (7 items)
+------------------------------
+
+Critical (4):
+  C1 — S1/S2 mapping corrected: _swings[-3], not _swings[-2]
+  C2 — Break-in-the-gap timing gap documented as known limitation
+  C3 — Same-bar event dedup: all_events.extend(e for e in status_changes if e not in new_events)
+  C4 — simulator=None guard in strategy V2 path + real TradeSimulator in QA
+
+Minor (3):
+  C5 — Duplicate @property events removed
+  C6 — End-of-dataset limbo events documented
+  C7 — close_break asymmetry documented (streaming checks high/low, not close)
+
+
+Files Delta
+------------
+
+File                          Δ Lines    Status
+────                          ───────    ──────
+smartmoneyconcepts/structures.py  +266   Created
+backtest.py                       +229   Modified
+strategies/bos_flip.py             +46   Modified
+tests/test_structure_engine.py    +440   Created
+tests/test_streaming_vs_batch.py  +181   Created
+scripts/run_bosflip_crossmarket.py +176  Created
+                              ───────
+  Total                         +1,338
+
+smartmoneyconcepts/smc.py          +0   ZERO changes (guardrail enforced)
+
+
+Key Design Decisions
+---------------------
+
+Decision                          Choice
+────────                          ──────
+BOS emission index                Two-stage: provisional on 4th swing, confirmed on break
+Unbroken signals                  Cancelled after configurable window (default 10 bars)
+Break detection                   high > level (bullish), low < level (bearish)
+Break level                       levels[-3] = S1's level (matches batch)
+Swing index for event             _swings[-3].index (matches batch last_positions[-2])
+Strategy integration              structure_events list per bar, filtered by status=="confirmed"
+Batch bos_choch()                 Still runs for per_candle_report (parallel, not replaced)
+Default bos_confirmation_window   10 bars
+
+
+Usage
+------
+
+Python API (streaming):
+
+  from backtest import BacktestConfig, BacktestHarness
+  from strategies.bos_flip import BOSFlipStrategy
+
+  cfg = BacktestConfig(
+      swing_length=5,
+      confirmation_bars=2,
+      bos_confirmation_window=10,  # NEW
+  )
+  strategy = BOSFlipStrategy()
+  harness = BacktestHarness(cfg, strategy_callback=strategy)
+  result = harness.run("BTCUSDT_4H.csv")
+
+  result.trades         → DataFrame (side, entry/exit, pnl, duration)
+  result.equity_curve   → Series (cumulative realized PnL)
+  result.metrics        → dict (all 20+ metrics incl. avg/median_trade_bars)
+
+
+Known Limitations
+------------------
+
+1. Timing Gap: Breaks in [S2+2, S3-1] are permanently missed by the streaming
+   engine. Match rate against batch is structurally <100% and depends on average
+   swing spacing. 94% observed on EURUSD-15M.
+
+2. End-of-dataset Limbo: Provisional events emitted in the last
+   bos_confirmation_window bars will never resolve (remain "provisional").
+   Strategy ignores them (filters on "confirmed"). ~5-15 per dataset.
+
+3. close_break Asymmetry: Streaming checks high/low for break detection (always).
+   Batch can optionally use close_break=True (close > level). This means streaming
+   confirms more events than batch when close_break=True — high > level is a
+   superset of close > level.

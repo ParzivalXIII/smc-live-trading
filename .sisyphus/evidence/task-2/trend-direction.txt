@@ -1,0 +1,5 @@
+S2.3.1: close > ema21 → above ✓
+S2.3.2: close < ema21 → below ✓
+S2.3.3: close ≈ ema21 → at ✓
+
+All trend_direction tests PASSED

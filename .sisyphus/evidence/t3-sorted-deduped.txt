@@ -1,0 +1,15 @@
+T3: Timestamp sort + dedup verification
+=========================================
+Command: uv run python -c "
+import pandas as pd
+df = pd.read_csv('data/ohlcv_BTCUSDT_1d_ta.csv', parse_dates=['timestamp'])
+assert len(df) >= 50, f'Too few rows: {len(df)}'
+print('monotonic:', df['timestamp'].is_monotonic_increasing)
+print('dups:', df['timestamp'].duplicated().sum())
+print('rows:', len(df))
+"
+
+Result:
+monotonic: True
+dups: 0
+rows: 1000

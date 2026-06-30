@@ -1,0 +1,1 @@
+PASS: 30 rows returns all-NaN indicators, no crash

@@ -1,0 +1,6 @@
+--- T2: Cross-market runner ---
+Created scripts/run_bosflip_crossmarket.py
+Ran on all 5 datasets successfully (5/5)
+Output files in .sisyphus/evidence/bosflip-crossmarket/:
+  - metrics.csv (5 rows x 10 columns)
+  - metrics.json

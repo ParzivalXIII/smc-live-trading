@@ -1,0 +1,35 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/parzivalxiii/Projects/smc-live-trading/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collecting ... collected 94 items / 68 deselected / 26 selected
+
+tests/test_analyze_ta_units.py::TestNormalizeSymbol::test_normalize[BTC/USDT-BTCUSDT] PASSED [  3%]
+tests/test_analyze_ta_units.py::TestNormalizeSymbol::test_normalize[BTCUSDT-BTCUSDT] PASSED [  7%]
+tests/test_analyze_ta_units.py::TestNormalizeSymbol::test_normalize[-] PASSED [ 11%]
+tests/test_analyze_ta_units.py::TestNormalizeSymbol::test_normalize[BTC/USDT/ABC-BTCUSDTABC] PASSED [ 15%]
+tests/test_analyze_ta_units.py::TestLastValid::test_last_valid[values0-3.0] PASSED [ 19%]
+tests/test_analyze_ta_units.py::TestLastValid::test_last_valid[values1-2.0] PASSED [ 23%]
+tests/test_analyze_ta_units.py::TestLastValid::test_last_valid[values2-nan] PASSED [ 26%]
+tests/test_analyze_ta_units.py::TestLastValid::test_last_valid[values3-42.0] PASSED [ 30%]
+tests/test_analyze_ta_units.py::TestLastValid::test_last_valid[values4-nan] PASSED [ 34%]
+tests/test_analyze_ta_units.py::TestLastValid::test_last_valid[values5-5.0] PASSED [ 38%]
+tests/test_analyze_ta_units.py::TestEmaSignal::test_ema_signal[110-100-expected_substrings0] PASSED [ 42%]
+tests/test_analyze_ta_units.py::TestEmaSignal::test_ema_signal[90-100-expected_substrings1] PASSED [ 46%]
+tests/test_analyze_ta_units.py::TestEmaSignal::test_ema_signal[100.05-100-expected_substrings2] PASSED [ 50%]
+tests/test_analyze_ta_units.py::TestEmaSignal::test_ema_signal[100-100-expected_substrings3] PASSED [ 53%]
+tests/test_analyze_ta_units.py::TestEmaSignal::test_ema_signal_zero_ema PASSED [ 57%]
+tests/test_analyze_ta_units.py::TestMacdSignalLabel::test_macd_signal_label[macd_vals0-signal_vals0-hist_vals0-bullish crossover] PASSED [ 61%]
+tests/test_analyze_ta_units.py::TestMacdSignalLabel::test_macd_signal_label[macd_vals1-signal_vals1-hist_vals1-bearish crossover] PASSED [ 65%]
+tests/test_analyze_ta_units.py::TestMacdSignalLabel::test_macd_signal_label[macd_vals2-signal_vals2-hist_vals2-None] PASSED [ 69%]
+tests/test_analyze_ta_units.py::TestMacdSignalLabel::test_macd_signal_label[macd_vals3-signal_vals3-hist_vals3-bullish (widening)] PASSED [ 73%]
+tests/test_analyze_ta_units.py::TestMacdSignalLabel::test_macd_signal_label[macd_vals4-signal_vals4-hist_vals4-bullish (converging)] PASSED [ 76%]
+tests/test_analyze_ta_units.py::TestMacdSignalLabel::test_macd_signal_label[macd_vals5-signal_vals5-hist_vals5-bearish (widening)] PASSED [ 80%]
+tests/test_analyze_ta_units.py::TestMacdSignalLabel::test_macd_signal_label[macd_vals6-signal_vals6-hist_vals6-bearish (converging)] PASSED [ 84%]
+tests/test_analyze_ta_units.py::TestMacdSignalLabel::test_macd_signal_label[macd_vals7-signal_vals7-hist_vals7-insufficient data] PASSED [ 88%]
+tests/test_analyze_ta_units.py::TestMacdSignalLabel::test_macd_signal_label[macd_vals8-signal_vals8-hist_vals8-insufficient data] PASSED [ 92%]
+tests/test_analyze_ta_units.py::TestMacdSignalLabel::test_macd_signal_label[macd_vals9-signal_vals9-hist_vals9-bullish (converging)] PASSED [ 96%]
+tests/test_analyze_ta_units.py::TestMacdSignalLabel::test_macd_signal_label[macd_vals10-signal_vals10-hist_vals10-bullish (widening)] PASSED [100%]
+
+====================== 26 passed, 68 deselected in 0.88s =======================

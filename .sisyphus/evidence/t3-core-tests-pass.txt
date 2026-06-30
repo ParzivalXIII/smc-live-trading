@@ -1,0 +1,16 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/parzivalxiii/Projects/smc-live-trading
+configfile: pyproject.toml
+collected 8 items
+
+tests/test_analyze_ta_core.py::TestComputeIndicators::test_all_23_columns_present PASSED
+tests/test_analyze_ta_core.py::TestComputeIndicators::test_insufficient_data_5_rows PASSED
+tests/test_analyze_ta_core.py::TestComputeIndicators::test_single_row PASSED
+tests/test_analyze_ta_core.py::TestComputeIndicators::test_compute_indicators_insufficient_rows PASSED
+tests/test_analyze_ta_core.py::TestComputeIndicators::test_constant_price PASSED
+tests/test_analyze_ta_core.py::TestComputeIndicators::test_zero_volume PASSED
+tests/test_analyze_ta_core.py::TestComputeIndicators::test_bb_ordering_invariant PASSED
+tests/test_analyze_ta_core.py::TestComputeIndicators::test_macd_identity_invariant PASSED
+
+============================== 8 passed in 3.27s ===============================

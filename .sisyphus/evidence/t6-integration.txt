@@ -1,0 +1,8 @@
+T6: Full Integration Test
+Status: ALL PASSED (0 failures)
+Scenarios:
+  1. NoopStrategy regression: PASS
+  2. BOSFlipStrategy (default): 260 trades, win_rate=0.7, net_pnl=0.5859
+  3. Custom config: 139 trades, different from default
+  4. Idempotency: Same results across runs
+Timestamp: 2026-06-23
